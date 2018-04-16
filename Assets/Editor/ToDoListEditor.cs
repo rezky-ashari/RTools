@@ -1,0 +1,63 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEditor;
+using UnityEngine;
+
+[CustomEditor(typeof(ToDoList))]
+public class ToDoListEditor : Editor {
+
+    GUIStyle doneStyle;
+    GUIStyle normalStyle;
+
+    public override void OnInspectorGUI()
+    {
+        ToDoList todo = (ToDoList)target;
+
+        InitializeGUIStyle();
+
+        if (todo.list.Count > 0)
+        {
+            ToDoList.Item item;
+            for (int i = 0; i < todo.list.Count; i++)
+            {
+                item = todo.list[i];
+                EditorGUILayout.BeginHorizontal();
+                item.isDone = GUILayout.Toggle(item.isDone, "", GUILayout.ExpandWidth(false));
+                item.task = EditorGUILayout.TextArea(item.task, item.isDone? doneStyle : normalStyle);
+                if (GUILayout.Button("x", GUILayout.Width(20)))
+                {
+                    Undo.RecordObject(todo, "Remove Task");
+                    todo.list.RemoveAt(i);
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+        }
+        else
+        {
+            EditorGUILayout.HelpBox("No task to show. \r\nYou may want to click the 'Add' button below.", MessageType.Info);
+        }
+
+        if (GUILayout.Button("Add"))
+        {
+            Undo.RecordObject(todo, "Undo Add");
+            todo.list.Add(new ToDoList.Item());
+        }
+
+        if (GUI.changed) EditorUtility.SetDirty(todo);
+    }
+
+    private void InitializeGUIStyle()
+    {
+        if (doneStyle == null)
+        {
+            normalStyle = GUI.skin.textArea;
+            normalStyle.wordWrap = true;
+            doneStyle = new GUIStyle(normalStyle);
+            doneStyle.normal.textColor = Color.grey;
+            doneStyle.focused.textColor = Color.grey;
+            doneStyle.active.textColor = Color.grey;
+            doneStyle.wordWrap = true;
+        }
+    }
+}
