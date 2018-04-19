@@ -1,17 +1,16 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(CanvasScalerConfig))]
-public class GlobalCanvasScalerSetup : Editor {
+public class GlobalCanvasScalerSetup : EditorWindow {
 
     [MenuItem("Rezky Tools/Global Canvas Setup")]
     public static void ShowWindow()
     {
-        //GetWindow(typeof(GlobalCanvasScalerSetup));
-        Selection.activeObject = CanvasScalerConfig.Instance;
+        GetWindow(typeof(GlobalCanvasScalerSetup), false, "Canvas Setup");
+        //Selection.activeObject = CanvasScalerConfig.Instance;
     }
 
-    public override void OnInspectorGUI()
+    public void OnGUI()
     {
         GUILayout.Label("Global Canvas Scaler Configuration", EditorStyles.boldLabel);
         CanvasScalerConfig config = CanvasScalerConfig.Instance;
@@ -31,9 +30,10 @@ public class GlobalCanvasScalerSetup : Editor {
         }
         else
         {
-            config.match = config.matchMode == CanvasScalerConfig.MatchMode.Portrait ? 1 : 0;
+            config.match = config.matchMode == CanvasScalerConfig.MatchMode.Portrait ? 0 : 1;
         }
-        
+
+        EditorGUILayout.HelpBox("Add 'GlobalCanvasScaler' component to a Canvas object to apply these settings.", MessageType.None);
 
         //EditorGUILayout.EndToggleGroup();
 
