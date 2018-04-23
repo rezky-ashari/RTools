@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UnifiedScalerWindow : EditorWindow {
 
@@ -7,6 +8,7 @@ public class UnifiedScalerWindow : EditorWindow {
     GameObject currentGameObject;
     Transform[] selectedTransforms;
     bool showSelectedTransforms;
+    bool setToNativeSize;
     float currentScale;
 
     [MenuItem("Rezky Tools/Unified Scaler &s")]
@@ -56,11 +58,17 @@ public class UnifiedScalerWindow : EditorWindow {
 
             EditorGUI.BeginChangeCheck();
             currentScale = EditorGUILayout.FloatField("Scale", currentScale);
+
+            Image image;
+            bool isContainingImage = true;
             for (int i = 0; i < selectedTransforms.Length; i++)
             {
                 selectedTransforms[i].localScale = new Vector3(currentScale, currentScale, currentScale);
+                image = selectedTransforms[i].GetComponent<Image>();
+                if (image == null) isContainingImage = false;
+                else if (setToNativeSize) image.SetNativeSize();
             }
-
+            
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("25%")) currentScale = 0.25f;
             if (GUILayout.Button("50%")) currentScale = 0.5f;
@@ -68,6 +76,11 @@ public class UnifiedScalerWindow : EditorWindow {
             if (GUILayout.Button("+10%")) currentScale += 0.1f;
             if (GUILayout.Button("-10%")) currentScale -= 0.1f;
             GUILayout.EndHorizontal();
+
+            if (isContainingImage)
+            {
+                setToNativeSize = GUILayout.Button(new GUIContent("Set to Native Size", "Set the selected image to it's native size"));
+            }
 
             if (EditorGUI.EndChangeCheck())
             {

@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// Automate the process of creating and updating 'Playlist' and 'GameScenes' data.
+/// Automate the process of creating and updating 'Playlist' and 'Scenes' data.
 /// </summary>
 public class RezAutomate : AssetPostprocessor
 {
@@ -42,8 +42,6 @@ public class RezAutomate : AssetPostprocessor
             AssetDatabase.Refresh();
         }
     }
-
-    
 
     static void CheckPlaylistChanges(string str)
     {

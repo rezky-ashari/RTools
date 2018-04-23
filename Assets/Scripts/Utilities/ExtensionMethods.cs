@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 using UnityEngine;
 
 public static class ExtensionMethods
@@ -256,5 +257,30 @@ public static class ExtensionMethods
         {
             list.Add(value);
         }
+    }
+
+    public static string ReplaceWith(this string source, char charToReplace, int index)
+    {
+        if (source == null) throw new ArgumentNullException("source");
+
+        if (index == -1) return source;
+
+        var output = new char[source.Length];
+
+        for (int i = 0; i < source.Length; i++)
+        {
+            if (i != index) output[i] = source[i];
+
+            else output[i] = charToReplace;
+
+        }
+        return new string(output);
+    }
+
+    public static string ReplaceChar(this string source, char charToReplace, int index)
+    {
+        StringBuilder sBuilder = new StringBuilder(source);
+        if (index >= 0 && index < sBuilder.Length) sBuilder[index] = charToReplace;
+        return sBuilder.ToString();
     }
 }

@@ -4,14 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-/// <summary>
-/// <para>Play an animation when clicked.</para>
-/// Author: Rezky Ashari
-/// </summary>
 public class AnimationTrigger : MonoBehaviour, IPointerClickHandler {
 
-    [Tooltip("Animation state name to call when click event occurred")]
-    public string onClick;
+    public string OnClick;
 
     private Animator animator;
 
@@ -33,7 +28,7 @@ public class AnimationTrigger : MonoBehaviour, IPointerClickHandler {
     {
         if (animator != null)
         {
-            animator.Play(onClick);
+            animator.Play(OnClick);
         }
     }
 }

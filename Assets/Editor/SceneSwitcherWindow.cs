@@ -39,10 +39,12 @@ public class SceneSwitcherWindow : EditorWindow {
         if (lastActiveScenePath != "")
         {
             if (GUILayout.Button("Back to " + Path.GetFileNameWithoutExtension(lastActiveScenePath))) SwitchScene(lastActiveScenePath);
+            GUILayout.Space(10);
         }
 
-        GUILayout.Label("Quick Switch Scene", EditorStyles.boldLabel);
         GUILayout.BeginHorizontal();
+        GUILayout.Label("Quick Switch:", EditorStyles.boldLabel);
+        
         if (GUILayout.Button("Scenes in Build Settings", showScenesInBuildSettings ? toggleButtonStyleToggled : toggleButtonStyleNormal))
         {
             showScenesInBuildSettings = true;

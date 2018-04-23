@@ -118,4 +118,15 @@ public class GameUtil {
 
         return hitArea;
     }
+
+    /// <summary>
+    /// Get a random value from the given values.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="words"></param>
+    /// <returns></returns>
+    public static T GetRandomFrom<T>(params T[] words)
+    {
+        return words[UnityEngine.Random.Range(0, words.Length)];
+    }
 }

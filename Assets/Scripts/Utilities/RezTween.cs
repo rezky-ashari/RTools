@@ -174,8 +174,8 @@ public class RezTween {
         if (duration <= 0)
         {
             FinalizeValues();
+            DelayedCall(0.01f, TweenComplete);
             if (targetParent != null) SetValue(targetParent, parentPropName, target);
-            TweenComplete();
         }
         else
         {
@@ -367,10 +367,13 @@ public class RezTween {
 
     void ResetValues()
     {
-        foreach (TweenValue tValues in tweenValues)
+        if (tweenValues != null)
         {
-            tValues.SetToInitialValue(target);
-        }
+            foreach (TweenValue tValues in tweenValues)
+            {
+                tValues.SetToInitialValue(target);
+            }
+        }       
     }
 
     void SwapValues()
@@ -387,6 +390,7 @@ public class RezTween {
         {
             value.SetToTargetValue(target);
         }
+        if (targetParent != null) SetValue(targetParent, parentPropName, target);
     }
 
     void TweenComplete()
@@ -397,21 +401,19 @@ public class RezTween {
         {
             repeat--;
             RepeatTween();
-            return;
         }
         else if (repeat == 0)
         {
             Destroy();
+            if (OnComplete != null)
+            {
+                //Debug.Log("Fired this " + OnComplete);
+                OnComplete();
+            }
         }
         else
         {
             RepeatTween();
-        }
-
-        if (OnComplete != null)
-        {
-            //Debug.Log("Fired this " + OnComplete);
-            OnComplete();
         }
     }
 
@@ -488,19 +490,14 @@ public class RezTween {
     /// <param name="duration"></param>
     /// <param name="targetAlpha"></param>
     /// <returns></returns>
-    public static RezTween AlphaTo(object image, float duration, float targetAlpha, params string[] properties)
+    public static RezTween AlphaTo(object image, float duration, float targetAlpha)
     {
         if (!ObjectHasProperty(image, "color"))
         {
             Debug.LogError("This object is not an image.");
             return null;
         }
-        List<string> propList = new List<string>(properties)
-        {
-            "a:" + targetAlpha,
-            "parentProperty:color"
-        };
-        return To(image, duration, propList.ToArray());
+        return To(image, duration, "a:" + targetAlpha, "parentProperty:color");
     }
 
     /// <summary>
@@ -835,21 +832,6 @@ public class RezTween {
     }
 
     /// <summary>
-    /// Scale a gameObject from a start value to the end value.
-    /// </summary>
-    /// <param name="gameObject">GameObject to scale</param>
-    /// <param name="duration">Tween duration</param>
-    /// <param name="startScale">Start value</param>
-    /// <param name="endScale">End value</param>
-    /// <param name="properties">Extra properties</param>
-    /// <returns></returns>
-    public static RezTween ScaleFromTo(GameObject gameObject, float duration, Vector3 startScale, Vector3 endScale, params string[] properties)
-    {
-        gameObject.transform.localScale = startScale;
-        return ScaleTo(gameObject, duration, endScale, properties);
-    }
-
-    /// <summary>
     /// Rotate a game object over time.
     /// </summary>
     /// <param name="gameObject">Target game object</param>
@@ -887,6 +869,15 @@ public class RezTween {
         return RotateTo(gameObject, duration, properties);
     }
 
+    public static RezTween ResizeUI(GameObject gameObject, float duration, params string[] properties)
+    {
+        List<string> propList = new List<string>(properties)
+        {
+            RezTweenOptions.ReadOnlyProperty("sizeDelta")
+        };
+        return To(gameObject.transform as RectTransform, duration, propList.ToArray());
+    }
+
     public static RezTween ValueRange(float start, float end, float duration, Action<float> onUpdate = null)
     {
         TweenProgress progress = new TweenProgress(start);
@@ -921,6 +912,43 @@ public class RezTween {
             OnComplete = callback
         };
         return tween;
+    }
+
+    /// <summary>
+    /// Stops a delayed call instance from being executed.
+    /// </summary>
+    /// <param name="delayedCall">Instance to stop.</param>
+    /// <param name="executeCompleteCallback">Whether to execute the onComplete callback. Default value is <code>false</code>.</param>
+    public static void StopDelayedCall(ref RezTween delayedCall, bool executeCompleteCallback = false)
+    {
+        if (delayedCall != null)
+        {
+            delayedCall.Destroy();
+            if (executeCompleteCallback && delayedCall.OnComplete != null) delayedCall.OnComplete();
+            delayedCall = null;
+        }
+    }
+
+    /// <summary>
+    /// Stops and remove a tween, then set the reference to null.
+    /// </summary>
+    /// <param name="tween">Tween instance to clear. Nothing happen if <code>null</code>.</param>
+    /// <param name="resetValue">'0' will reset to the initial values, '1' will reset to the final values. Any other values will be ignored.</param>
+    public static void Clear(ref RezTween tween, float resetValue = -1)
+    {
+        if (tween != null)
+        {
+            tween.Destroy();
+            if (resetValue == 0)
+            {
+                tween.ResetValues();
+            }
+            else if (resetValue == 1)
+            {
+                tween.FinalizeValues();
+            }
+            tween = null;
+        }
     }
 
     /// <summary>

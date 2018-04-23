@@ -1,29 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
-using System;
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 /// <summary>
 /// <para>Global canvas scaler. Add this script to every canvas that need to be set based on the desired game resolution.</para>
 /// Author: Rezky Ashari
 /// </summary>
-[ExecuteInEditMode]
+[ExecuteInEditMode, RequireComponent(typeof(Canvas)), RequireComponent(typeof(CanvasScaler))]
 public class GlobalCanvasScaler : MonoBehaviour {
-
-    [HideInInspector]
-    public RenderMode renderMode;
-    //[Range(0, 4000), HideInInspector]
-    //public float referenceWidth = 1024;
-    //[Range(0, 4000), HideInInspector]
-    //public float referenceHeight = 720;
-    //[Range(0, 1), HideInInspector]
-    //public float match = 1;
 
     CanvasScaler canvasScaler;
     CanvasScaler Scaler
@@ -44,6 +27,19 @@ public class GlobalCanvasScaler : MonoBehaviour {
         }
     }
 
+    static Camera _mainCamera;
+    static Camera MainCamera
+    {
+        get
+        {
+            if (_mainCamera == null)
+            {
+                _mainCamera = Camera.main;
+            }
+            return _mainCamera;
+        }
+    }
+
     private void Reset()
     {
         Update();
@@ -52,27 +48,38 @@ public class GlobalCanvasScaler : MonoBehaviour {
     // Use this for initialization
     void Start () {
         //scalerList.AddIfNotExists(this);
-        Reset();
+        if (Application.isPlaying)
+        {
+            ApplyGlobalSettings();
+        }
+        else
+        {
+            Reset();
+        }        
 	}
 	
 	// Update is called once per frame
 	void Update () {
         if (!Application.isPlaying)
         {
-            CanvasScalerConfig config = CanvasScalerConfig.Instance;
-            
-            Scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            Scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            Scaler.referenceResolution = config.ReferenceResolution;
-            Scaler.matchWidthOrHeight = config.match;
-
-            CanvasComponent.renderMode = renderMode = config.renderMode;
+            ApplyGlobalSettings();
         }
-        
-        if (renderMode == RenderMode.ScreenSpaceCamera && CanvasComponent.worldCamera == null)
+    }
+
+    void ApplyGlobalSettings()
+    {
+        CanvasScalerConfig config = CanvasScalerConfig.Instance;
+
+        Scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        Scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        Scaler.referenceResolution = config.ReferenceResolution;
+        Scaler.matchWidthOrHeight = config.match;
+
+        CanvasComponent.renderMode = config.renderMode;
+
+        if (config.renderMode == RenderMode.ScreenSpaceCamera && CanvasComponent.worldCamera == null)
         {
-            CanvasComponent.worldCamera = Camera.main;
+            CanvasComponent.worldCamera = MainCamera;
         }
-
     }
 }

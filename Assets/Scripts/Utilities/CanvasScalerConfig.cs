@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using UnityEditor;
 using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class CanvasScalerConfig : ScriptableObject
 {
@@ -69,6 +72,7 @@ public class CanvasScalerConfig : ScriptableObject
         return settings;
     }
 
+#if UNITY_EDITOR
     static void CreateFolderIfNotExists(string parentFolder, string subFolder)
     {
         if (!AssetDatabase.IsValidFolder(Path.Combine(parentFolder, subFolder)))
@@ -76,4 +80,5 @@ public class CanvasScalerConfig : ScriptableObject
             AssetDatabase.CreateFolder(parentFolder, subFolder);
         }
     }
+#endif
 }
