@@ -1,5 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class GlobalCanvasScalerSetup : EditorWindow {
 
@@ -8,6 +10,25 @@ public class GlobalCanvasScalerSetup : EditorWindow {
     {
         GetWindow(typeof(GlobalCanvasScalerSetup), false, "Canvas Setup");
         //Selection.activeObject = CanvasScalerConfig.Instance;
+    }
+
+    [MenuItem("GameObject/UI/Game Canvas")]
+    public static void AddGameCanvas()
+    {
+        GameObject gameObject = new GameObject("GameCanvas");
+        gameObject.AddComponent<Canvas>();
+        gameObject.AddComponent<CanvasScaler>();
+        gameObject.AddComponent<GraphicRaycaster>();
+        gameObject.AddComponent<GlobalCanvasScaler>();
+
+        if (GameObject.Find("EventSystem") == null)
+        {
+            GameObject eventSystem = new GameObject("EventSystem");
+            eventSystem.AddComponent<EventSystem>();
+            eventSystem.AddComponent<StandaloneInputModule>();
+        }
+
+        Selection.activeGameObject = gameObject;
     }
 
     public void OnGUI()

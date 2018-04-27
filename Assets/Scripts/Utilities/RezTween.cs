@@ -155,7 +155,7 @@ public class RezTween {
                     if (ExistInArray(specialProperties, propName)) continue;
                     if (!ObjectHasProperty(target, propName))
                     {
-                        Debug.Log("There's no property with name " + propName + " in " + target.GetType().Name);
+                        Debug.Log("There's no property with name " + propName + " in " + target);
                         continue;
                     }
                     float initialValue = (float)GetValue(target, propName);
@@ -490,14 +490,18 @@ public class RezTween {
     /// <param name="duration"></param>
     /// <param name="targetAlpha"></param>
     /// <returns></returns>
-    public static RezTween AlphaTo(object image, float duration, float targetAlpha)
+    public static RezTween AlphaTo(object image, float duration, float targetAlpha, params string[] properties)
     {
         if (!ObjectHasProperty(image, "color"))
         {
             Debug.LogError("This object is not an image.");
             return null;
         }
-        return To(image, duration, "a:" + targetAlpha, "parentProperty:color");
+        List<string> propList = new List<string>(properties)
+        {
+            "a:" + targetAlpha, RezTweenOptions.ReadOnlyProperty("color")
+        };
+        return To(image, duration, propList.ToArray());
     }
 
     /// <summary>
@@ -525,11 +529,15 @@ public class RezTween {
     /// <param name="image"></param>
     /// <param name="target"></param>
     /// <param name="duration"></param>
+    /// <param name="properties"></param>
     /// <returns></returns>
-    public static RezTween ColorTo(object image, Color target, float duration)
+    public static RezTween ColorTo(object image, Color target, float duration, params string[] properties)
     {
-        Debug.Log("Tween color: " + target);
-        return To(image, duration, "r:" + target.r, "g:" + target.g, "b:" + target.b, "a:" + target.a, RezTweenOptions.ReadOnlyProperty("color"));
+        List<string> propList = new List<string>(properties)
+        {
+            "r:" + target.r, "g:" + target.g, "b:" + target.b, "a:" + target.a, RezTweenOptions.ReadOnlyProperty("color")
+        };
+        return To(image, duration, propList.ToArray());
     }
 
     /// <summary>
@@ -1377,7 +1385,7 @@ public class RezTweenOptions
 
     /// <summary>
     /// Specify the read only property to overwrite.
-    /// (eg: Transform.position is readonly property, so pass 'position' as a parameter)
+    /// (eg: Transform.position is readonly property, so pass 'position' as the parameter)
     /// </summary>
     /// <param name="propertyName"></param>
     /// <returns></returns>

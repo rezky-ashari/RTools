@@ -58,7 +58,7 @@ public class Scene : MonoBehaviour {
     }
 
 #if UNITY_EDITOR
-    [MenuItem("GameObject/Add Scene Manager", false, 11)]
+    [MenuItem("GameObject/Scene Manager", false, 11)]
     static void AddSceneManager()
     {
         if (GameObject.Find("SceneManager") != null)
