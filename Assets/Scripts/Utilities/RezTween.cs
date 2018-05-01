@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// <para>Simple tween engine.</para>
@@ -29,8 +30,8 @@ public class RezTween {
     /// </summary>
     static readonly string[] specialProperties = new string[]{ "delay", "repeat", "repeatDelay", "yoyo", "parentProperty", "ease" };
 
-    static Dictionary<string, RezTweenEase> easeFunctions;
-    RezTweenEase ease = EaseFunctions.Linear;
+    static Dictionary<string, RezTweenEaseFunction> easeFunctions;
+    RezTweenEaseFunction ease = EaseFunctions.Linear;
 
     object target;
     float duration;
@@ -183,23 +184,23 @@ public class RezTween {
         }        
     }
 
-    private RezTweenEase GetEaseFunction(string ease)
+    private RezTweenEaseFunction GetEaseFunction(string ease)
     {
         //Debug.Log("Assign ease " + ease);
         string easeName = "ease:" + ease;
         if (easeFunctions == null)
         {
-            easeFunctions = new Dictionary<string, RezTweenEase>();
-            easeFunctions[RezTweenOptions.Ease.SPRING] = EaseFunctions.Spring;
-            easeFunctions[RezTweenOptions.Ease.BACK_IN] = EaseFunctions.BackIn;
-            easeFunctions[RezTweenOptions.Ease.BACK_OUT] = EaseFunctions.BackOut;
-            easeFunctions[RezTweenOptions.Ease.BACK_IN_OUT] = EaseFunctions.BackInOut;
-            easeFunctions[RezTweenOptions.Ease.BOUNCE_IN] = EaseFunctions.BounceIn;
-            easeFunctions[RezTweenOptions.Ease.BOUNCE_OUT] = EaseFunctions.BounceOut;
-            easeFunctions[RezTweenOptions.Ease.BOUNCE_IN_OUT] = EaseFunctions.BounceInOut;
-            easeFunctions[RezTweenOptions.Ease.ELASTIC_IN] = EaseFunctions.ElasticIn;
-            easeFunctions[RezTweenOptions.Ease.ELASTIC_OUT] = EaseFunctions.ElasticOut;
-            easeFunctions[RezTweenOptions.Ease.ELASTIC_IN_OUT] = EaseFunctions.ElasticInOut;
+            easeFunctions = new Dictionary<string, RezTweenEaseFunction>();
+            easeFunctions[RezTweenEase.SPRING] = EaseFunctions.Spring;
+            easeFunctions[RezTweenEase.BACK_IN] = EaseFunctions.BackIn;
+            easeFunctions[RezTweenEase.BACK_OUT] = EaseFunctions.BackOut;
+            easeFunctions[RezTweenEase.BACK_IN_OUT] = EaseFunctions.BackInOut;
+            easeFunctions[RezTweenEase.BOUNCE_IN] = EaseFunctions.BounceIn;
+            easeFunctions[RezTweenEase.BOUNCE_OUT] = EaseFunctions.BounceOut;
+            easeFunctions[RezTweenEase.BOUNCE_IN_OUT] = EaseFunctions.BounceInOut;
+            easeFunctions[RezTweenEase.ELASTIC_IN] = EaseFunctions.ElasticIn;
+            easeFunctions[RezTweenEase.ELASTIC_OUT] = EaseFunctions.ElasticOut;
+            easeFunctions[RezTweenEase.ELASTIC_IN_OUT] = EaseFunctions.ElasticInOut;
         }
         return easeFunctions.ContainsKey(easeName)? easeFunctions[easeName] : EaseFunctions.Linear;
     }
@@ -492,11 +493,7 @@ public class RezTween {
     /// <returns></returns>
     public static RezTween AlphaTo(object image, float duration, float targetAlpha, params string[] properties)
     {
-        if (!ObjectHasProperty(image, "color"))
-        {
-            Debug.LogError("This object is not an image.");
-            return null;
-        }
+        image = ValidateImageObject(image);
         List<string> propList = new List<string>(properties)
         {
             "a:" + targetAlpha, RezTweenOptions.ReadOnlyProperty("color")
@@ -512,15 +509,38 @@ public class RezTween {
     /// <param name="initialAlpha">Initial alpha</param>
     /// <param name="targetAlpha">Target alpha</param>
     /// <returns></returns>
-    public static RezTween AlphaFromTo(object image, float duration, float initialAlpha, float targetAlpha)
+    public static RezTween AlphaFromTo(object image, float duration, float initialAlpha, float targetAlpha, params string[] properties)
     {
+        image = ValidateImageObject(image);
         var color = GetValue(image, "color");
         if (color != null)
         {
             SetValue(color, "a", initialAlpha);
             SetValue(image, "color", color);
         }
-        return AlphaTo(image, duration, targetAlpha);
+        return AlphaTo(image, duration, targetAlpha, properties);
+    }
+
+    /// <summary>
+    /// Check if the object we want to process is an Image. If not, get and return the Image component.
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    static object ValidateImageObject(object source)
+    {
+        if (source != null && !ObjectHasProperty(source, "color"))
+        {
+            Type sourceType = source.GetType();
+            if (sourceType.Name == "GameObject")
+            {
+                return (source as GameObject).GetComponent<Image>();
+            }
+            else
+            {
+                Debug.Log("Object is not an Image or not contains the Image component.");
+            }
+        }
+        return source;
     }
 
     /// <summary>
@@ -1005,7 +1025,7 @@ public class RezTween {
             //Debug.Log("Add tween value " + propertyName + ", initial Value: " + initialValue + ", targetValue: " + targetValue);
         }
 
-        public void Update(float time, object target, RezTweenEase ease)
+        public void Update(float time, object target, RezTweenEaseFunction ease)
         {
             currentValue = ease(initialValue, targetValue, time);
             SetValue(target, propertyName, currentValue);
@@ -1045,7 +1065,7 @@ public class RezTween {
     }
 
     #region Ease
-    delegate float RezTweenEase(float start, float end, float time);
+    delegate float RezTweenEaseFunction(float start, float end, float time);
 
     /// <summary>
     /// Contains ease equations taken and modified from https://gist.github.com/cjddmut/d789b9eb78216998e95c
@@ -1324,10 +1344,7 @@ public class RezTween {
 /// </summary>
 public class RezTweenOptions
 {
-    /// <summary>
-    /// <para>Apply ease option to a RezTween</para>
-    /// Author: Rezky Ashari
-    /// </summary>
+    [Obsolete("Use RezTweenEase instead.")]
     public struct Ease
     {
         public const string LINEAR = "ease:linear";
@@ -1401,4 +1418,23 @@ public class RezTweenOptions
     {
         get { return ReadOnlyProperty("position"); }
     }
+}
+
+/// <summary>
+/// <para>Apply ease option to a RezTween</para>
+/// Author: Rezky Ashari
+/// </summary>
+public struct RezTweenEase
+{
+    public const string LINEAR = "ease:linear";
+    public const string SPRING = "ease:spring";
+    public const string BACK_IN = "ease:backIn";
+    public const string BACK_OUT = "ease:backOut";
+    public const string BACK_IN_OUT = "ease:backInOut";
+    public const string BOUNCE_IN = "ease:bounceIn";
+    public const string BOUNCE_OUT = "ease:bounceOut";
+    public const string BOUNCE_IN_OUT = "ease:bounceInOut";
+    public const string ELASTIC_IN = "ease:elasticIn";
+    public const string ELASTIC_OUT = "ease:elasticOut";
+    public const string ELASTIC_IN_OUT = "ease:elasticInOut";
 }

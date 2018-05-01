@@ -29,7 +29,7 @@ public class TweenTest : MonoBehaviour {
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 testObject.transform.localPosition = Vector3.zero;
-                RezTween.MoveTo(testObject, duration, "x:100", RezTweenOptions.Ease.BACK_OUT, RezTweenOptions.Repeat(repeat), RezTweenOptions.RepeatDelay(repeatDelay), RezTweenOptions.Yoyo(yoyo)).OnComplete = () =>
+                RezTween.MoveTo(testObject, duration, "x:100", RezTweenEase.BACK_OUT, RezTweenOptions.Repeat(repeat), RezTweenOptions.RepeatDelay(repeatDelay), RezTweenOptions.Yoyo(yoyo)).OnComplete = () =>
                 {
                     Debug.Log("Complete position tween!");
                     PlayRandomSFX();
@@ -52,7 +52,7 @@ public class TweenTest : MonoBehaviour {
             if (Input.GetKeyDown(KeyCode.S))
             {
                 testObject.transform.localScale = Vector3.one;
-                RezTween.ScaleTo(testObject, duration, 1.5f, RezTweenOptions.Ease.BACK_OUT, RezTweenOptions.Repeat(repeat), RezTweenOptions.RepeatDelay(repeatDelay), RezTweenOptions.Yoyo(yoyo));
+                RezTween.ScaleTo(testObject, duration, 1.5f, RezTweenEase.BACK_OUT, RezTweenOptions.Repeat(repeat), RezTweenOptions.RepeatDelay(repeatDelay), RezTweenOptions.Yoyo(yoyo));
             }
         }        
 	}

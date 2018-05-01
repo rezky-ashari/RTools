@@ -147,8 +147,8 @@ public class OptionMenu : MonoBehaviour {
     {
         if (!isShown)
         {
-            RezTween.MoveBy(soundButton, 0.3f, "y:-" + buttonSpacing, RezTweenOptions.Ease.BACK_OUT);
-            RezTween.MoveBy(homeButton, 0.3f, "y:-" + (buttonSpacing * 2), RezTweenOptions.Ease.BACK_OUT);
+            RezTween.MoveBy(soundButton, 0.3f, "y:-" + buttonSpacing, RezTweenEase.BACK_OUT);
+            RezTween.MoveBy(homeButton, 0.3f, "y:-" + (buttonSpacing * 2), RezTweenEase.BACK_OUT);
             isShown = true;
         }
     }

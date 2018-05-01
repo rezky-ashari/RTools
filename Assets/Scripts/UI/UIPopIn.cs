@@ -15,7 +15,7 @@ public class UIPopIn : MonoBehaviour {
     // Use this for initialization
     void Start () {
         transform.localScale = Vector3.one * defaultScale;
-        RezTween.ScaleFrom(gameObject, 0.5f, 0, RezTweenOptions.Delay(delay), RezTweenOptions.Ease.BACK_OUT).OnComplete = ()=>
+        RezTween.ScaleFrom(gameObject, 0.5f, 0, RezTweenOptions.Delay(delay), RezTweenEase.BACK_OUT).OnComplete = ()=>
         transform.localScale = Vector3.one * defaultScale;
     }
 	
