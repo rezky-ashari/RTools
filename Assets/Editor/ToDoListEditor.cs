@@ -10,6 +10,12 @@ public class ToDoListEditor : Editor {
     GUIStyle doneStyle;
     GUIStyle normalStyle;
 
+    [MenuItem("Rezky Tools/To Do List #d")]
+    static void ShowToDoList()
+    {
+        Selection.activeObject = AssetDatabase.LoadAssetAtPath<ToDoList>("Assets/ToDoList.asset");
+    }
+
     public override void OnInspectorGUI()
     {
         ToDoList todo = (ToDoList)target;
@@ -38,11 +44,14 @@ public class ToDoListEditor : Editor {
             EditorGUILayout.HelpBox("No task to show. \r\nYou may want to click the 'Add' button below.", MessageType.Info);
         }
 
-        if (GUILayout.Button("Add"))
+        GUILayout.BeginHorizontal();
+        GUILayout.FlexibleSpace();
+        if (GUILayout.Button("Add", GUILayout.MaxWidth(100)))
         {
             Undo.RecordObject(todo, "Undo Add");
             todo.list.Add(new ToDoList.Item());
         }
+        GUILayout.EndHorizontal();
 
         if (GUI.changed) EditorUtility.SetDirty(todo);
     }

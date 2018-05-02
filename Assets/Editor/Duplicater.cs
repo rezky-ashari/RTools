@@ -11,7 +11,7 @@ public class Duplicater : EditorWindow {
     int numberToCreate = 1;
     string basename;
 
-    [MenuItem("Rezky Tools/Duplicater &D")]
+    [MenuItem("Rezky Tools/Duplicater #&D")]
     public static void ShowWindow()
     {
         //Show existing window instance. If one doesn't exist, make one.
@@ -39,7 +39,7 @@ public class Duplicater : EditorWindow {
                 if (prefabRoot != null)
                 {
                     instantiatedObject = (GameObject)PrefabUtility.InstantiatePrefab(prefabRoot);
-                    Debug.Log("Instantiate Prefab: " + instantiatedObject);
+                    //Debug.Log("Instantiate Prefab: " + instantiatedObject);
                 }
                 if (instantiatedObject == null) instantiatedObject = Instantiate(baseGameObject);
                 instantiatedObject.transform.SetParent(container, !isUI);
@@ -57,7 +57,7 @@ public class Duplicater : EditorWindow {
             prefabRoot = PrefabUtility.FindPrefabRoot(baseGameObject);
             container = baseGameObject.transform.parent;
             basename = baseGameObject.name;
-            Debug.Log("Prefab root: " + prefabRoot);
+            //Debug.Log("Prefab root: " + prefabRoot);
         }
         
     }

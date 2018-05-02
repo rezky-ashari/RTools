@@ -7,6 +7,12 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+#if UNITY_EDITOR
+using UnityEditor;
+using System.Reflection;
+#endif
+
+[ExecuteInEditMode]
 public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler {
 
     [Serializable]
@@ -17,8 +23,12 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
 
     [Tooltip("Whether to ignore click on transparent area of this button. You have to check the 'Read/Write Enabled' in image's Import Settings.")]
     public bool ignoreTransparentArea = false;
+
     [Tooltip("Ignore Y drag in vertical scroll list")]
     public bool ignoreYDrag = false;
+
+    public bool ignoreXDrag = false;
+
     public bool scaleOnDown = true;
     public GameObject scaleTarget;
     public SelectableGroup selectableGroup;
@@ -28,10 +38,55 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
 
     float defaultScale = 1;
     float currentAlpha = 1;
+    float lastAlpha = 0;
 
     const float dragThreshold = 25;
     bool listenToMouseUp = false;
     float startY;
+    float startX;
+
+    #region Context/Menu.
+#if UNITY_EDITOR
+    private static double renameTime;
+
+    [MenuItem("GameObject/UI/Game Button", false, 11)]
+    static void AddGameButton()
+    {
+        GameObject buttonObject = new GameObject("GameButton");
+        buttonObject.AddComponent<RectTransform>();
+        buttonObject.AddComponent<Image>();
+        buttonObject.AddComponent<GameButton>();
+
+        if (Selection.activeGameObject != null)
+        {
+            buttonObject.transform.SetParent(Selection.activeGameObject.transform, false);
+        }
+        else
+        {
+            Canvas parentCanvas = FindObjectOfType<Canvas>();
+            if (parentCanvas != null)
+            {
+                buttonObject.transform.SetParent(parentCanvas.transform, false);
+            }
+        }
+        Selection.activeGameObject = buttonObject;
+        renameTime = EditorApplication.timeSinceStartup + 0.2d;
+        EditorApplication.update += EngageRenameMode;
+    }
+
+    private static void EngageRenameMode()
+    {
+        if (EditorApplication.timeSinceStartup >= renameTime)
+        {
+            EditorApplication.update -= EngageRenameMode;
+            var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
+            var hierarchyWindow = EditorWindow.GetWindow(type);
+            var rename = type.GetMethod("RenameGO", BindingFlags.Instance | BindingFlags.NonPublic);
+            rename.Invoke(hierarchyWindow, null);
+        }
+    }
+#endif
+    #endregion
 
     void Reset()
     {
@@ -41,31 +96,59 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
 
     // Use this for initialization
     void Start () {
-        if (ignoreTransparentArea)
+        if (Application.isPlaying)
         {
-            GetComponent<Image>().alphaHitTestMinimumThreshold = 0.01f;
-        }        
+            if (ignoreTransparentArea)
+            {
+                GetComponent<Image>().alphaHitTestMinimumThreshold = 0.01f;
+            }
+        }
+        else
+        {
+            UpdateInteractableState();
+        }
 	}
 
     private void UpdateAlpha()
     {
         currentAlpha = interactable ? 1f : 0.5f;
-        Image imageComponent = GetComponent<Image>();
-        Color currentColor = imageComponent.color;
-        imageComponent.color = new Color(currentColor.r, currentColor.g, currentColor.b, currentAlpha);
+        if (currentAlpha != lastAlpha)
+        {
+            Image[] images = GetComponentsInChildren<Image>();
+            for (int i = 0; i < images.Length; i++)
+            {
+                Image imageComponent = images[i];
+                Color currentColor = imageComponent.color;
+                imageComponent.color = new Color(currentColor.r, currentColor.g, currentColor.b, currentAlpha);
+            }
+            lastAlpha = currentAlpha;
+        }        
     }
 
     // Update is called once per frame
     void Update () {
-		if (listenToMouseUp && Input.GetMouseButtonUp(0))
+        if (Application.isPlaying)
         {
-            float distance = Math.Abs(startY - Input.mousePosition.y);
-            //Debug.Log("Y distance " + distance);
-            if (distance <= 25)
+            if (listenToMouseUp && Input.GetMouseButtonUp(0))
             {
-                ExecuteClick();
+                Vector3 mousePosition = Input.mousePosition;
+                if (ignoreYDrag)
+                {
+                    float distanceY = Math.Abs(startY - mousePosition.y);
+                    if (distanceY <= dragThreshold) ExecuteClick();
+                }
+                if (ignoreXDrag)
+                {
+                    float distanceX = Math.Abs(startX - mousePosition.x);
+                    if (distanceX <= dragThreshold) ExecuteClick();
+                }
+
+                listenToMouseUp = false;
             }
-            listenToMouseUp = false;
+        }
+        else
+        {
+            UpdateInteractableState();
         }
 	}
 
@@ -128,10 +211,11 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
         if (scaleOnDown && scaleTarget != null) scaleTarget.transform.ScaleTo(defaultScale);
         if (!interactable) return;
 
-        if (ignoreYDrag)
+        listenToMouseUp = ignoreYDrag || ignoreXDrag;
+        if (listenToMouseUp)
         {
-            listenToMouseUp = true;
             startY = Input.mousePosition.y;
+            startX = Input.mousePosition.x;
         }
         else
         {
@@ -139,7 +223,7 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
         }
     }
 
-#region Do not edit. For Scene Handler.
+    #region Do not edit. For Scene Handler.
     static Action<string> sceneListener;
     public static void SetSceneListener(Action<string> listener)
     {
