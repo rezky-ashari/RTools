@@ -10,7 +10,7 @@ public class ToDoListEditor : Editor {
     GUIStyle doneStyle;
     GUIStyle normalStyle;
 
-    [MenuItem("Rezky Tools/To Do List #d")]
+    [MenuItem("Rezky Tools/To Do List &d")]
     static void ShowToDoList()
     {
         Selection.activeObject = AssetDatabase.LoadAssetAtPath<ToDoList>("Assets/ToDoList.asset");

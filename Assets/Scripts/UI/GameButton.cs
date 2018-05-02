@@ -105,7 +105,7 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
         }
         else
         {
-            UpdateInteractableState();
+            UpdateAlpha();
         }
 	}
 
@@ -146,11 +146,8 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
                 listenToMouseUp = false;
             }
         }
-        else
-        {
-            UpdateInteractableState();
-        }
-	}
+        UpdateAlpha();
+    }
 
     void UpdateInteractableState()
     {
