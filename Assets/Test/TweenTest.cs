@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class TweenTest : MonoBehaviour {
 
     public GameObject testObject;
+    public GameObject sprite;
     public float duration = 0.5f;
     public int repeat = 0;
     public float repeatDelay = 0;
@@ -54,7 +55,12 @@ public class TweenTest : MonoBehaviour {
                 testObject.transform.localScale = Vector3.one;
                 RezTween.ScaleTo(testObject, duration, 1.5f, RezTweenEase.BACK_OUT, RezTweenOptions.Repeat(repeat), RezTweenOptions.RepeatDelay(repeatDelay), RezTweenOptions.Yoyo(yoyo));
             }
-        }        
+        }
+        
+        if (sprite != null && Input.GetKeyDown(KeyCode.N))
+        {
+            RezTween.MoveTo(sprite, 0.5f, "x:5");
+        }
 	}
 
     private void PlayRandomSFX()

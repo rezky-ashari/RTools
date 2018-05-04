@@ -1421,7 +1421,7 @@ public class RezTweenOptions
 }
 
 /// <summary>
-/// <para>Apply ease option to a RezTween</para>
+/// <para>Apply ease function to a RezTween instance.</para>
 /// Author: Rezky Ashari
 /// </summary>
 public struct RezTweenEase

@@ -122,11 +122,11 @@ public class GameUtil {
     /// <summary>
     /// Get a random value from the given values.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="words"></param>
+    /// <typeparam name="T">Value type.</typeparam>
+    /// <param name="values">Values to randomize.</param>
     /// <returns></returns>
-    public static T GetRandomFrom<T>(params T[] words)
+    public static T GetRandomFrom<T>(params T[] values)
     {
-        return words[UnityEngine.Random.Range(0, words.Length)];
+        return values[UnityEngine.Random.Range(0, values.Length)];
     }
 }
