@@ -13,7 +13,16 @@ public class ToDoListEditor : Editor {
     [MenuItem("Rezky Tools/To Do List &d")]
     static void ShowToDoList()
     {
-        Selection.activeObject = AssetDatabase.LoadAssetAtPath<ToDoList>("Assets/ToDoList.asset");
+        const string filePath = "Assets/ToDoList.asset";
+        ToDoList toDoList = AssetDatabase.LoadAssetAtPath<ToDoList>(filePath);
+        if (toDoList == null)
+        {
+            toDoList = CreateInstance<ToDoList>();
+            AssetDatabase.CreateAsset(toDoList, filePath);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+        Selection.activeObject = toDoList;
     }
 
     public override void OnInspectorGUI()
@@ -22,7 +31,7 @@ public class ToDoListEditor : Editor {
 
         InitializeGUIStyle();
 
-        if (todo.list.Count > 0)
+        if (todo.list != null && todo.list.Count > 0)
         {
             ToDoList.Item item;
             for (int i = 0; i < todo.list.Count; i++)
