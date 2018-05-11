@@ -26,19 +26,29 @@ public class SceneSwitchR {
     static CanvasGroup transitionOverlay;
 
     /// <summary>
-    /// Called before changing scene. Automatically will be set to null after called once.
+    /// Will be called before changing scene. Automatically will be set to null after called once.
     /// </summary>
     public static Action OnBeforeChangingScene;
 
     /// <summary>
-    /// Called after changing scene. Automatically will be set to null after called once.
+    /// Will be called after changing scene. Automatically will be set to null after called once.
     /// </summary>
     public static Action OnAfterChangingScene;
+
+    /// <summary>
+    /// Will be called after removing the transition overlay.
+    /// </summary>
+    public static event Action OnAfterTransition;
 
     /// <summary>
     /// Called when scene changed.
     /// </summary>
     public static event Action OnSceneChanged;
+
+    /// <summary>
+    /// Wheter we're currently on transition mode.
+    /// </summary>
+    public static bool IsOnTransition { get; private set; }
 
     /// <summary>
     /// Create a dark fader from the resource prefab.
@@ -77,10 +87,15 @@ public class SceneSwitchR {
     /// <param name="showAd"></param>
 	public static void To(string sceneName, bool showAd = false)
     {
-        ExecuteOnce(ref OnBeforeChangingScene);
-        showAdAfterLoad = showAd;
-        RezTween.To(CreateTransitionOverlay(), transitionDuration / 2, "alpha:1").OnComplete = ()=>
-        RezTween.StartCoroutine(LoadScene(sceneName));
+        if (!IsOnTransition)
+        {
+            ExecuteOnce(ref OnBeforeChangingScene);
+            IsOnTransition = true;
+            showAdAfterLoad = showAd;
+            RezTween.To(CreateTransitionOverlay(), transitionDuration / 2, "alpha:1").OnComplete = () =>
+            RezTween.StartCoroutine(LoadScene(sceneName));
+        }
+        
     }
 
     /// <summary>
@@ -145,5 +160,21 @@ public class SceneSwitchR {
     {
         if (action != null) action();
         action = null;
+    }
+
+    /// <summary>
+    /// Execute a method after transition complete (that is, after removing the overlay).
+    /// </summary>
+    /// <param name="action">Method to execute.</param>
+    public static void ExecuteAfterTransition(Action action)
+    {
+        if (IsOnTransition)
+        {
+            OnAfterTransition += action;
+        }
+        else
+        {
+            action();
+        }
     }
 }

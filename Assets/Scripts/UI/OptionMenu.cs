@@ -37,6 +37,13 @@ public class OptionMenu : MonoBehaviour {
     bool isShown = false;
 
     /// <summary>
+    /// Called when option menu state changed.
+    /// Will pass value <code>true</code> when all menu is shown, otherwise <code>false</code>.
+    /// IMPORTANT: Don't forget to unsubscribe to this event when you're done using it.
+    /// </summary>
+    public static event Action<bool> OnStateChanged;
+
+    /// <summary>
     /// Gets or Sets option menu's visible state.
     /// </summary>
     public static bool Visible
