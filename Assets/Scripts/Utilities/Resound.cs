@@ -18,22 +18,18 @@ public class Resound : MonoBehaviour {
     /// </summary>
     public const string soundResourcePath = "Sounds";
 
-    /// <summary>
-    /// Limit for sfx's audio sources.
-    /// </summary>
     const int sfxLimit = 20;
-
-    /// <summary>
-    /// Default volume for all sounds.
-    /// </summary>
-    static float defaultVolume = 1f;
 
     static ResoundHost Host
     {
         get {
             return ResoundHost.GetInstance();
         }
-    }   
+    }
+
+    static float defaultVolume = 1f;
+    static float defaultMusicVolume = 0.5f;
+    static float defaultSfxVolume = 0.6f;
 
     /// <summary>
     /// Whether audio is in mute state.
@@ -45,9 +41,14 @@ public class Resound : MonoBehaviour {
     /// </summary>
     /// <param name="filename">Sound filename as defined in <code>Playlist</code>.</param>
     /// <param name="loop"></param>
-    public static void PlaySFX(string filename, bool loop = false)
+    public static float PlaySFX(string filename, bool loop = false)
     {
-        Host.PlaySFX(filename, loop);
+        return Host.PlaySFX(filename, loop).clip.length;
+    }
+
+    public static float FadeInSFX(string filename, bool loop = false)
+    {
+        return Host.FadeInSFX(filename, loop).clip.length;
     }
 
     /// <summary>
@@ -69,11 +70,24 @@ public class Resound : MonoBehaviour {
     }
 
     /// <summary>
-    /// Stop the current BGM.
+    /// Stops the currently playing BGM.
     /// </summary>
-    public static void StopMusic()
+    /// <param name="delay">Delay before stop (in seconds)</param>
+    public static void StopMusic(float delay = 0)
     {
-        Host.StopMusic();
+        if (delay > 0)
+        {
+            RezTween.DelayedCall(delay, () => Host.StopMusic());
+        }
+        else
+        {
+            Host.StopMusic();
+        }        
+    }
+
+    public static void FadeOutMusic()
+    {
+        Host.FadeOutMusic();
     }
 
     /// <summary>
@@ -93,12 +107,6 @@ public class Resound : MonoBehaviour {
     public static void ToggleMute()
     {
         SetMute(!IsMute);
-    }
-
-    public static void SetVolume(float volume)
-    {
-        defaultVolume = Mathf.Clamp01(volume);
-        AudioListener.volume = defaultVolume;
     }
 
     #region Editor Menu
@@ -140,15 +148,16 @@ public class Resound : MonoBehaviour {
         static ResoundHost _instance;
 
         public bool mute = false;
-        bool lastMuteState = false;
-
         public string playingBGM;
+
+        bool lastMuteState = false;
 
         int updateRate = 120;
         int passedFrame = 0;
 
         AudioSource musicSource;
-        List<AudioSource> sfxSources = new List<AudioSource>(); 
+        List<AudioSource> sfxSources = new List<AudioSource>();
+        List<SoundFader> soundFaderList = new List<SoundFader>();
 
         public static ResoundHost GetInstance()
         {
@@ -198,6 +207,20 @@ public class Resound : MonoBehaviour {
             }
         }
 
+        private void FixedUpdate()
+        {
+            SoundFader soundFader; 
+            for (int i = soundFaderList.Count - 1; i >= 0; i--)
+            {
+                soundFader = soundFaderList[i];
+                soundFader.Update(Time.fixedDeltaTime);
+                if (soundFader.IsComplete)
+                {
+                    soundFaderList.RemoveAt(i);
+                }
+            }
+        }
+
         AudioSource AddAudioSource()
         {
             AudioSource audioSrc = gameObject.AddComponent<AudioSource>();
@@ -205,16 +228,35 @@ public class Resound : MonoBehaviour {
             return audioSrc;
         }
 
-        public void PlaySFX(string filename, bool loop)
+        public AudioSource PlaySFX(string filename, bool loop)
         {
             if (sfxSources.Count < sfxLimit)
             {
-                AudioSource sfxSource = AddAudioSource();
-                sfxSource.clip = Resources.Load<AudioClip>(soundResourcePath + "/" + filename);
-                sfxSource.loop = loop;
-                sfxSource.Play();
-                sfxSources.Add(sfxSource);
+                string filePath = soundResourcePath + "/" + filename;
+                AudioClip clip = Resources.Load<AudioClip>(filePath);
+                if (clip != null)
+                {
+                    AudioSource sfxSource = AddAudioSource();
+                    sfxSource.clip = clip;
+                    sfxSource.loop = loop;
+                    sfxSource.volume = defaultSfxVolume;
+                    sfxSource.Play();
+                    sfxSources.Add(sfxSource);
+                    return sfxSource;
+                }
+                else
+                {
+                    Debug.Log("The audio file you're trying to play is not found! " + filePath);
+                }
             }
+            return null;
+        }
+
+        public AudioSource FadeInSFX(string filename, bool loop)
+        {
+            AudioSource sfxSource = PlaySFX(filename, loop);
+            AddSoundFader(new SoundFader(sfxSource, true, defaultSfxVolume));
+            return sfxSource;
         }
 
         public void StopSFX(string filename = "all")
@@ -229,21 +271,30 @@ public class Resound : MonoBehaviour {
             }
         }
 
-        public void PlayMusic(string filename)
+        public AudioSource PlayMusic(string filename)
         {
             if (musicSource == null)
             {
                 musicSource = AddAudioSource();
                 musicSource.playOnAwake = true;
             }
+            else if (musicSource.volume == 0 && filename == playingBGM)
+            {
+                musicSource.Stop();
+                playingBGM = "";
+            }
 
-            if (playingBGM == filename && musicSource.isPlaying) return;
+            if (playingBGM != filename || !musicSource.isPlaying)
+            {
+                musicSource.clip = Resources.Load<AudioClip>(soundResourcePath + "/" + filename);
+                musicSource.loop = true;
+                musicSource.volume = defaultMusicVolume;
+                musicSource.Play();
 
-            musicSource.clip = Resources.Load<AudioClip>(soundResourcePath + "/" + filename);
-            musicSource.loop = true;
-            musicSource.Play();
+                playingBGM = filename;
+            }
 
-            playingBGM = filename;
+            return musicSource;
         }
 
         public void StopMusic(bool fadeOut = false)
@@ -253,7 +304,67 @@ public class Resound : MonoBehaviour {
                 musicSource.Stop();
             }
         }
+
+        void AddSoundFader(SoundFader soundFader)
+        {
+            soundFaderList.Add(soundFader);
+        }
+        
+        public void FadeOutMusic()
+        {
+            AddSoundFader(new SoundFader(musicSource, false, defaultMusicVolume));
+        }
     }
     #endregion
+
+    class SoundFader
+    {
+        private float maxVolume = 1f;
+        private AudioSource source;
+        private bool isFadeIn = true;
+        private float updateSpeed = 1f;
+        
+        public bool IsComplete { get; private set; }
+
+        public SoundFader(AudioSource source, bool isFadeIn, float maxVolume = 1f)
+        {
+            this.source = source;
+            this.isFadeIn = isFadeIn;
+            this.maxVolume = maxVolume;            
+            source.volume = isFadeIn ? 0 : maxVolume;
+        }
+
+        public void Update(float deltaTime)
+        {
+            if (source == null)
+            {
+                IsComplete = true;
+                return;
+            }
+
+            if (isFadeIn)
+            {
+                if (source.volume < maxVolume)
+                {
+                    source.volume += updateSpeed * deltaTime;
+                }
+                else
+                {
+                    IsComplete = true;
+                }
+            }
+            else
+            {
+                if (source.volume > 0)
+                {
+                    source.volume -= updateSpeed * deltaTime;
+                }
+                else
+                {
+                    IsComplete = true;
+                }
+            }
+        }
+    }
 }
 

@@ -20,22 +20,25 @@ public class SceneSwitchR {
     /// </summary>
     static bool showAdAfterLoad = false;
 
-    public static bool IsOnTransition { get; private set; }
-
     /// <summary>
     /// CanvasGroup of a transition overlay to dispose.
     /// </summary>
     static CanvasGroup transitionOverlay;
 
     /// <summary>
-    /// Called before changing scene. Automatically will be set to null after called once.
+    /// Will be called before changing scene. Automatically will be set to null after called once.
     /// </summary>
     public static Action OnBeforeChangingScene;
 
     /// <summary>
-    /// Called after changing scene. Automatically will be set to null after called once.
+    /// Will be called after changing scene. Automatically will be set to null after called once.
     /// </summary>
     public static Action OnAfterChangingScene;
+
+    /// <summary>
+    /// Will be called after removing the transition overlay.
+    /// </summary>
+    public static event Action OnAfterTransition;
 
     /// <summary>
     /// Called when scene changed.
@@ -43,9 +46,9 @@ public class SceneSwitchR {
     public static event Action OnSceneChanged;
 
     /// <summary>
-    /// Called before destroying the transition overlay.
+    /// Wheter we're currently on transition mode.
     /// </summary>
-    public static event Action OnDestroyingOverlay;
+    public static bool IsOnTransition { get; private set; }
 
     /// <summary>
     /// Create a dark fader from the resource prefab.
@@ -55,10 +58,10 @@ public class SceneSwitchR {
     /// <returns></returns>
     static CanvasGroup CreateTransitionOverlay(float initialAlpha = 0)
     {
-        GameObject overlayPrefab = Resources.Load<GameObject>("Prefabs/TransitionCanvas");
+        GameObject overlayPrefab = Resources.Load<GameObject>("Prefabs/DarkFader");
         if (overlayPrefab == null)
         {
-            overlayPrefab = Resources.Load<GameObject>("Prefabs/DarkFader");
+            overlayPrefab = Resources.Load<GameObject>("Prefabs/TransitionCanvas");
         }
         CanvasGroup cg = UnityEngine.Object.Instantiate(overlayPrefab).GetComponent<CanvasGroup>();
         cg.alpha = initialAlpha;
@@ -91,7 +94,8 @@ public class SceneSwitchR {
             showAdAfterLoad = showAd;
             RezTween.To(CreateTransitionOverlay(), transitionDuration / 2, "alpha:1").OnComplete = () =>
             RezTween.StartCoroutine(LoadScene(sceneName));
-        }        
+        }
+        
     }
 
     /// <summary>
@@ -112,16 +116,14 @@ public class SceneSwitchR {
         transitionOverlay = CreateTransitionOverlay(1);
         
         if (showAdAfterLoad)
-        {
+        {            
             RezTween.DelayedCall(0.1f, () =>
             {
-                DestroyLoadingImage();
 #if IKAAN_PLUGIN
-                RezTween.DelayedCall(IkaanAPI.Ads != null? IkaanAPI.Ads.AdTimeOut : 3f, DestroyOverlay);
                 IkaanAPI.Ads.ShowInterstitial(DestroyOverlay, DestroyOverlay);
-#else 
-                FadeOutOverlay();
 #endif
+                RezTween.DelayedCall(4f, DestroyOverlay);
+                
             });
             showAdAfterLoad = false;
         }
@@ -134,22 +136,10 @@ public class SceneSwitchR {
 #endif
     }
 
-    private static void DestroyLoadingImage()
-    {
-        if (transitionOverlay != null)
-        {
-            Transform secondChild = transitionOverlay.transform.GetChild(1);
-            if (secondChild != null) secondChild.gameObject.SetActive(false);
-        }
-    }
-
     static void DestroyOverlay()
     {
         if (transitionOverlay != null)
         {
-            IsOnTransition = false;
-            ExecuteOnce(ref OnDestroyingOverlay);
-
             UnityEngine.Object.Destroy(transitionOverlay.gameObject);
             transitionOverlay = null;
         }
@@ -173,14 +163,14 @@ public class SceneSwitchR {
     }
 
     /// <summary>
-    /// Execute a method after scene transition.
+    /// Execute a method after transition complete (that is, after removing the overlay).
     /// </summary>
-    /// <param name="action"></param>
+    /// <param name="action">Method to execute.</param>
     public static void ExecuteAfterTransition(Action action)
     {
         if (IsOnTransition)
         {
-            OnDestroyingOverlay += action;
+            OnAfterTransition += action;
         }
         else
         {

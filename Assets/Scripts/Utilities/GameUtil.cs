@@ -65,6 +65,19 @@ public class GOCreatorChainable
 public class GameUtil {
 
     /// <summary>
+    /// Main camera reference. Stored for faster access (better than <code>Camera.main</code>).
+    /// </summary>
+    public static Camera MainCamera
+    {
+        get
+        {
+            if (_mainCamera == null) _mainCamera = Camera.main;
+            return _mainCamera;
+        }
+    }
+    static Camera _mainCamera;
+
+    /// <summary>
     /// Destroy a gameObject. Use destroy immediate on editor and normal destroy when playing.
     /// Fail silently if the gameObject is null. 
     /// </summary>
@@ -202,13 +215,29 @@ public class GameUtil {
     }
 
     /// <summary>
+    /// Get a random value from a collection.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="list"></param>
+    /// <returns></returns>
+    public static T GetRandomValue<T>(T[] list)
+    {
+        return list[UnityEngine.Random.Range(0, list.Length)];
+    }
+
+    /// <summary>
     /// Get a random value from the given values.
     /// </summary>
-    /// <typeparam name="T">Value type.</typeparam>
-    /// <param name="values">Values to randomize.</param>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="list"></param>
     /// <returns></returns>
-    public static T GetRandomFrom<T>(params T[] values)
+    public static T GetRandomFrom<T>(params T[] list)
     {
-        return values[UnityEngine.Random.Range(0, values.Length)];
+        return GetRandomValue<T>(list);
+    }
+
+    public static float RandomRange(float min, float max)
+    {
+        return UnityEngine.Random.Range(min, max);
     }
 }
