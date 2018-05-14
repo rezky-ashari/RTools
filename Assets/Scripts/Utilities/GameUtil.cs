@@ -5,6 +5,60 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
+/// Chainable Game Object Creator.
+/// </summary>
+public class GOCreatorChainable
+{
+    public GameObject gameObject;
+
+    /// <summary>
+    /// Create a new chainable game object creator.
+    /// </summary>
+    /// <param name="name"></param>
+    public GOCreatorChainable(string name, bool useRectTransform = false)
+    {
+        gameObject = new GameObject(name);
+        if (useRectTransform) gameObject.AddComponent<RectTransform>();
+    }
+
+    public GOCreatorChainable AddComponent<T>()
+    {
+        gameObject.AddComponent(typeof(T));
+        return this;
+    }
+
+    public GOCreatorChainable AddComponent<T>(out T component) where T : Component
+    {
+        component = (T)gameObject.AddComponent(typeof(T));
+        return this;
+    }
+
+    public GOCreatorChainable SetParent(GameObject parent, bool worldPositionStays = true)
+    {
+        return SetParent(parent.transform, worldPositionStays);
+    }
+
+    public GOCreatorChainable SetParent(Transform parent, bool worldPositionStays = true)
+    {
+        gameObject.transform.SetParent(parent, worldPositionStays);
+        return this;
+    }
+
+    public GOCreatorChainable SetRectTransformPivot(Vector2 min, Vector2 max)
+    {
+        RectTransform rectTransform = gameObject.transform as RectTransform;
+        rectTransform.anchorMin = min;
+        rectTransform.anchorMax = max;
+        return this;
+    }
+
+    public static GOCreatorChainable Create(string name, bool useRectTransform = false)
+    {
+        return new GOCreatorChainable(name, useRectTransform);
+    }
+}
+
+/// <summary>
 /// <para>Collection of utility methods.</para>
 /// Author: Rezky Ashari
 /// </summary>
@@ -20,11 +74,11 @@ public class GameUtil {
         if (gameObject == null) return;
         if (Application.isPlaying)
         {
-            GameObject.Destroy(gameObject);
+            UnityEngine.Object.Destroy(gameObject);
         }
         else
         {
-            GameObject.DestroyImmediate(gameObject);
+            UnityEngine.Object.DestroyImmediate(gameObject);
         }
     }
 
@@ -85,6 +139,34 @@ public class GameUtil {
     public static void SetLocalPosition(GameObject gameObject, params string[] properties)
     {
         SetLocalPosition(gameObject.transform, properties);
+    }
+
+    /// <summary>
+    /// Quick way to set localPosition of a transform.
+    /// </summary>
+    public static void SetLocalPosition(Transform transform, float? x = null, float? y = null, float? z = null)
+    {
+        Vector3 localPosition = transform.localPosition;
+        if (x.HasValue) localPosition.x = (float)x;
+        if (y.HasValue) localPosition.y = (float)y;
+        if (z.HasValue) localPosition.z = (float)z;
+        transform.localPosition = localPosition;
+    }
+
+    /// <summary>
+    /// Quick way to set localPosition of a GameObject.
+    /// </summary>
+    public static void SetLocalPosition(GameObject gameObject, float? x = null, float? y = null, float? z = null)
+    {
+        SetLocalPosition(gameObject.transform, x, y, z);
+    }
+
+    /// <summary>
+    /// Quick way to set localPosition of a MonoBehaviour.
+    /// </summary>
+    public static void SetLocalPosition(MonoBehaviour monoBehaviour, float? x = null, float? y = null, float? z = null)
+    {
+        SetLocalPosition(monoBehaviour.transform, x, y, z);
     }
 
     /// <summary>

@@ -20,6 +20,8 @@ public class SceneSwitchR {
     /// </summary>
     static bool showAdAfterLoad = false;
 
+    public static bool IsOnTransition { get; private set; }
+
     /// <summary>
     /// CanvasGroup of a transition overlay to dispose.
     /// </summary>
@@ -41,6 +43,11 @@ public class SceneSwitchR {
     public static event Action OnSceneChanged;
 
     /// <summary>
+    /// Called before destroying the transition overlay.
+    /// </summary>
+    public static event Action OnDestroyingOverlay;
+
+    /// <summary>
     /// Create a dark fader from the resource prefab.
     /// Dark fader must be a game object that contains a CanvasGroup element.
     /// </summary>
@@ -48,10 +55,10 @@ public class SceneSwitchR {
     /// <returns></returns>
     static CanvasGroup CreateTransitionOverlay(float initialAlpha = 0)
     {
-        GameObject overlayPrefab = Resources.Load<GameObject>("Prefabs/DarkFader");
+        GameObject overlayPrefab = Resources.Load<GameObject>("Prefabs/TransitionCanvas");
         if (overlayPrefab == null)
         {
-            overlayPrefab = Resources.Load<GameObject>("Prefabs/TransitionCanvas");
+            overlayPrefab = Resources.Load<GameObject>("Prefabs/DarkFader");
         }
         CanvasGroup cg = UnityEngine.Object.Instantiate(overlayPrefab).GetComponent<CanvasGroup>();
         cg.alpha = initialAlpha;
@@ -77,10 +84,14 @@ public class SceneSwitchR {
     /// <param name="showAd"></param>
 	public static void To(string sceneName, bool showAd = false)
     {
-        ExecuteOnce(ref OnBeforeChangingScene);
-        showAdAfterLoad = showAd;
-        RezTween.To(CreateTransitionOverlay(), transitionDuration / 2, "alpha:1").OnComplete = ()=>
-        RezTween.StartCoroutine(LoadScene(sceneName));
+        if (!IsOnTransition)
+        {
+            ExecuteOnce(ref OnBeforeChangingScene);
+            IsOnTransition = true;
+            showAdAfterLoad = showAd;
+            RezTween.To(CreateTransitionOverlay(), transitionDuration / 2, "alpha:1").OnComplete = () =>
+            RezTween.StartCoroutine(LoadScene(sceneName));
+        }        
     }
 
     /// <summary>
@@ -101,14 +112,16 @@ public class SceneSwitchR {
         transitionOverlay = CreateTransitionOverlay(1);
         
         if (showAdAfterLoad)
-        {            
+        {
             RezTween.DelayedCall(0.1f, () =>
             {
+                DestroyLoadingImage();
 #if IKAAN_PLUGIN
+                RezTween.DelayedCall(IkaanAPI.Ads != null? IkaanAPI.Ads.AdTimeOut : 3f, DestroyOverlay);
                 IkaanAPI.Ads.ShowInterstitial(DestroyOverlay, DestroyOverlay);
+#else 
+                FadeOutOverlay();
 #endif
-                RezTween.DelayedCall(4f, DestroyOverlay);
-                
             });
             showAdAfterLoad = false;
         }
@@ -121,10 +134,22 @@ public class SceneSwitchR {
 #endif
     }
 
+    private static void DestroyLoadingImage()
+    {
+        if (transitionOverlay != null)
+        {
+            Transform secondChild = transitionOverlay.transform.GetChild(1);
+            if (secondChild != null) secondChild.gameObject.SetActive(false);
+        }
+    }
+
     static void DestroyOverlay()
     {
         if (transitionOverlay != null)
         {
+            IsOnTransition = false;
+            ExecuteOnce(ref OnDestroyingOverlay);
+
             UnityEngine.Object.Destroy(transitionOverlay.gameObject);
             transitionOverlay = null;
         }
@@ -145,5 +170,21 @@ public class SceneSwitchR {
     {
         if (action != null) action();
         action = null;
+    }
+
+    /// <summary>
+    /// Execute a method after scene transition.
+    /// </summary>
+    /// <param name="action"></param>
+    public static void ExecuteAfterTransition(Action action)
+    {
+        if (IsOnTransition)
+        {
+            OnDestroyingOverlay += action;
+        }
+        else
+        {
+            action();
+        }
     }
 }

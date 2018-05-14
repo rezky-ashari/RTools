@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// <para>Tint one or more Image component in lazy way.</para>
+/// Author: Rezky Ashari
+/// </summary>
 [ExecuteInEditMode]
 public class ImageTinter : MonoBehaviour {
 

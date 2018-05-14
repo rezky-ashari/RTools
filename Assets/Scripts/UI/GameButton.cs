@@ -27,10 +27,14 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
     [Tooltip("Ignore Y drag in vertical scroll list")]
     public bool ignoreYDrag = false;
 
+    [Tooltip("Ignore X drag in horizontal scroll list")]
     public bool ignoreXDrag = false;
 
+    [Tooltip("Wheter to scale game button to give a 'pressed' effect.")]
     public bool scaleOnDown = true;
     public GameObject scaleTarget;
+
+    [Tooltip("For group of buttons that required only one button to be selected. Attach 'SelectableGroup' component to SceneManager to get started.")]
     public SelectableGroup selectableGroup;
 
     [SerializeField]
@@ -39,6 +43,8 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
     float defaultScale = 1;
     float currentAlpha = 1;
     float lastAlpha = 0;
+
+    bool receiveRaycast = true;
 
     const float dragThreshold = 25;
     bool listenToMouseUp = false;
@@ -52,10 +58,7 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
     [MenuItem("GameObject/UI/Game Button", false, 11)]
     static void AddGameButton()
     {
-        GameObject buttonObject = new GameObject("GameButton");
-        buttonObject.AddComponent<RectTransform>();
-        buttonObject.AddComponent<Image>();
-        buttonObject.AddComponent<GameButton>();
+        GameObject buttonObject = CreateGameButton("GameButton");
 
         if (Selection.activeGameObject != null)
         {
@@ -88,6 +91,37 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
 #endif
     #endregion
 
+    /// <summary>
+    /// Whether this button receives raycast.
+    /// </summary>
+    public bool RaycastTarget
+    {
+        get
+        {
+            return receiveRaycast;
+        }
+        set
+        {
+            receiveRaycast = value;
+            ProcessImages(image =>
+            {
+                image.raycastTarget = receiveRaycast;
+            });
+        }
+    }
+
+    public static GameObject CreateGameButton(string name, GameObject parent = null)
+    {
+        GameObject buttonObject = new GameObject(name);
+        buttonObject.AddComponent<RectTransform>();
+        buttonObject.AddComponent<Image>();
+        buttonObject.AddComponent<GameButton>();
+
+        if (parent != null) buttonObject.SetParent(parent, false);
+
+        return buttonObject;
+    }
+
     void Reset()
     {
         ID = gameObject.name;
@@ -114,15 +148,26 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
         currentAlpha = interactable ? 1f : 0.5f;
         if (currentAlpha != lastAlpha)
         {
-            Image[] images = GetComponentsInChildren<Image>();
-            for (int i = 0; i < images.Length; i++)
+            ProcessImages(image =>
             {
-                Image imageComponent = images[i];
-                Color currentColor = imageComponent.color;
-                imageComponent.color = new Color(currentColor.r, currentColor.g, currentColor.b, currentAlpha);
-            }
+                Color currentColor = image.color;
+                image.color = new Color(currentColor.r, currentColor.g, currentColor.b, currentAlpha);
+            });
             lastAlpha = currentAlpha;
         }        
+    }
+
+    /// <summary>
+    /// Do operation for all button images.
+    /// </summary>
+    /// <param name="handler"></param>
+    void ProcessImages(Action<Image> handler)
+    {
+        Image[] images = GetComponentsInChildren<Image>();
+        for (int i = 0; i < images.Length; i++)
+        {
+            handler(images[i]);
+        }
     }
 
     // Update is called once per frame
