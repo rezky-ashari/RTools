@@ -142,6 +142,9 @@ public class SceneSwitchR {
         {
             UnityEngine.Object.Destroy(transitionOverlay.gameObject);
             transitionOverlay = null;
+
+            IsOnTransition = false;
+            ExecuteOnce(ref OnAfterTransition);
         }
     }
 

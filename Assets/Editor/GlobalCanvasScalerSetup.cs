@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class GlobalCanvasScalerSetup : EditorWindow {
 
-    [MenuItem("Rezky Tools/Global Canvas Setup")]
+    [MenuItem("Rezky Tools/Global Canvas Setup", priority = 1)]
     public static void ShowWindow()
     {
         GetWindow(typeof(GlobalCanvasScalerSetup), false, "Canvas Setup");
