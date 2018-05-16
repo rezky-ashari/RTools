@@ -111,7 +111,7 @@ public class Resound : MonoBehaviour {
 
     #region Editor Menu
 #if UNITY_EDITOR
-    private const string menuName = "Rezky Tools/Mute Resound";
+    private const string menuName = "Rezky Tools/Mute Resound in Editor";
     private static bool isToggled;  
 
     [MenuItem(menuName)]
@@ -129,6 +129,12 @@ public class Resound : MonoBehaviour {
         isToggled = EditorPrefs.GetBool(menuName, false);
         Menu.SetChecked(menuName, isToggled);
         return true;
+    }
+
+    [MenuItem("Rezky Tools/Open Sound Folder")]
+    private static void OpenSoundFolder()
+    {
+        EditorUtility.RevealInFinder("Assets/Resources/Sounds/readme.txt");
     }
 #endif
 
