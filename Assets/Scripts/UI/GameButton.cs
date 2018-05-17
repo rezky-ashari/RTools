@@ -24,10 +24,10 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
     [Tooltip("Whether to ignore click on transparent area of this button. You have to check the 'Read/Write Enabled' in image's Import Settings.")]
     public bool ignoreTransparentArea = false;
 
-    [Tooltip("Ignore Y drag in vertical scroll list")]
+    [Tooltip("Ignore click when vertically dragged.")]
     public bool ignoreYDrag = false;
 
-    [Tooltip("Ignore X drag in horizontal scroll list")]
+    [Tooltip("Ignore click when horizontally dragged.")]
     public bool ignoreXDrag = false;
 
     [Tooltip("Wheter to scale game button to give a 'pressed' effect.")]
@@ -250,8 +250,8 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (scaleOnDown && scaleTarget != null) scaleTarget.transform.ScaleTo(defaultScale);
         if (!interactable) return;
+        if (scaleOnDown && scaleTarget != null) scaleTarget.transform.ScaleTo(defaultScale);        
 
         listenToMouseUp = ignoreYDrag || ignoreXDrag;
         if (listenToMouseUp)
