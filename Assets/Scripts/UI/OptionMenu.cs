@@ -133,6 +133,8 @@ public class OptionMenu : MonoBehaviour {
     {
         if (isShown) HideOptions();
         else ShowOptions();
+
+        if (OnStateChanged != null) OnStateChanged(isShown);
     }
 
     private void BackToHome()
