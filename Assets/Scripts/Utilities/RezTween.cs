@@ -891,6 +891,15 @@ public class RezTween {
         return RotateTo(gameObject, duration, properties);
     }
 
+    public static RezTween ResizeUI(GameObject gameObject, float duration, params string[] properties)
+    {
+        List<string> propList = new List<string>(properties)
+        {
+            RezTweenOptions.ReadOnlyProperty("sizeDelta")
+        };
+        return To(gameObject.transform as RectTransform, duration, propList.ToArray());
+    }
+
     public static RezTween ValueRange(float start, float end, float duration, Action<float> onUpdate = null)
     {
         TweenProgress progress = new TweenProgress(start);
