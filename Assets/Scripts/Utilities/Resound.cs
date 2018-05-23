@@ -19,6 +19,11 @@ public class Resound {
     public const string soundResourcePath = "Sounds";
 
     /// <summary>
+    /// Called whenever mute state changed.
+    /// </summary>
+    public static event Action<bool> OnMuteStateChanged;
+
+    /// <summary>
     /// Limit for sfx's audio sources.
     /// </summary>
     const int sfxLimit = 20;
@@ -108,6 +113,8 @@ public class Resound {
         AudioListener.pause = mute;
         AudioListener.volume = (mute) ? 0 : masterVolume;
         Host.mute = mute;
+
+        if (OnMuteStateChanged != null) OnMuteStateChanged(mute);
     }
 
     /// <summary>
@@ -185,11 +192,11 @@ public class Resound {
                 DontDestroyOnLoad(container);
                 _instance = container.AddComponent<ResoundHost>();
 #if RESOUND_CONFIG
-                ResoundConfig config = ResoundConfig.Instance;
-                masterVolume = config.masterVolume;
-                defaultBGMVolume = config.BGMVolume;
-                defaultSFXVolume = config.SFXVolume;
-                SetMute(config.muteByDefault);
+                ResoundSettings settings = ResoundSettings.Instance;
+                masterVolume = settings.masterVolume;
+                defaultBGMVolume = settings.BGMVolume;
+                defaultSFXVolume = settings.SFXVolume;
+                SetMute(settings.muteByDefault);
 #else
                 SetMute(IsMuteInEditor());
 #endif

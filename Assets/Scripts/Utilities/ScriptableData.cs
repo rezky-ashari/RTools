@@ -1,11 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using UnityEditor;
+﻿using System.IO;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 /// <summary>
-/// <para>ScriptableObject of a data with singleton mode.</para>
+/// <para>A Singleton of ScriptableObject for storing data.</para>
 /// Author: Rezky Ashari
 /// </summary>
 public class ScriptableData<T> : ScriptableObject where T : ScriptableObject {
