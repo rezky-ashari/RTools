@@ -40,7 +40,6 @@ public class TweenTest : MonoBehaviour {
             if (Input.GetKeyDown(KeyCode.A))
             {
                 CanvasGroup cg = testObject.GetComponent<CanvasGroup>();
-                if (cg == null) cg = testObject.AddComponent<CanvasGroup>();
 
                 cg.alpha = 1;
                 RezTween.To(cg, duration, "alpha:0", RezTweenOptions.Repeat(repeat), RezTweenOptions.RepeatDelay(repeatDelay), RezTweenOptions.Yoyo(yoyo)).OnComplete = () =>

@@ -11,25 +11,37 @@ using UnityEditor;
 /// <para>Simple sound manager.</para>
 /// Author: Rezky Ashari
 /// </summary>
-public class Resound : MonoBehaviour {
+public class Resound {
 
     /// <summary>
     /// Resource folder name that contains all audio files.
     /// </summary>
     public const string soundResourcePath = "Sounds";
 
+    /// <summary>
+    /// Called whenever mute state changed.
+    /// </summary>
+    public static event Action<bool> OnMuteStateChanged;
+
+    /// <summary>
+    /// Limit for sfx's audio sources.
+    /// </summary>
     const int sfxLimit = 20;
+
+    /// <summary>
+    /// Default volume for all sounds.
+    /// </summary>
+    static float masterVolume = 1f;
+
+    static float defaultBGMVolume = 1f;
+    static float defaultSFXVolume = 1f;
 
     static ResoundHost Host
     {
         get {
             return ResoundHost.GetInstance();
         }
-    }
-
-    static float defaultVolume = 1f;
-    static float defaultMusicVolume = 0.5f;
-    static float defaultSfxVolume = 0.6f;
+    }   
 
     /// <summary>
     /// Whether audio is in mute state.
@@ -41,14 +53,9 @@ public class Resound : MonoBehaviour {
     /// </summary>
     /// <param name="filename">Sound filename as defined in <code>Playlist</code>.</param>
     /// <param name="loop"></param>
-    public static float PlaySFX(string filename, bool loop = false)
+    public static void PlaySFX(string filename, bool? loop = false, float? volume = null)
     {
-        return Host.PlaySFX(filename, loop).clip.length;
-    }
-
-    public static float FadeInSFX(string filename, bool loop = false)
-    {
-        return Host.FadeInSFX(filename, loop).clip.length;
+        Host.PlaySFX(filename, volume.HasValue? (float)volume : defaultSFXVolume, (bool)loop);
     }
 
     /// <summary>
@@ -61,6 +68,16 @@ public class Resound : MonoBehaviour {
     }
 
     /// <summary>
+    /// Set the volume for all SFXs.
+    /// </summary>
+    /// <param name="volume"></param>
+    public static void SetSFXVolume(float volume)
+    {
+        defaultSFXVolume = Mathf.Clamp01(volume);
+        Host.SetSFXVolume(volume);
+    }
+
+    /// <summary>
     /// Play a BGM (or replace the one that currently playing).
     /// </summary>
     /// <param name="filename">BGM filename as defined in <code>Playlist</code>.</param>
@@ -70,24 +87,21 @@ public class Resound : MonoBehaviour {
     }
 
     /// <summary>
-    /// Stops the currently playing BGM.
+    /// Stop the current BGM.
     /// </summary>
-    /// <param name="delay">Delay before stop (in seconds)</param>
-    public static void StopMusic(float delay = 0)
+    public static void StopMusic()
     {
-        if (delay > 0)
-        {
-            RezTween.DelayedCall(delay, () => Host.StopMusic());
-        }
-        else
-        {
-            Host.StopMusic();
-        }        
+        Host.StopMusic();
     }
 
-    public static void FadeOutMusic()
+    /// <summary>
+    /// Set volume for all BGMs.
+    /// </summary>
+    /// <param name="volume"></param>
+    public static void SetMusicVolume(float volume)
     {
-        Host.FadeOutMusic();
+        defaultBGMVolume = Mathf.Clamp01(volume);
+        Host.SetMusicVolume(volume);
     }
 
     /// <summary>
@@ -97,8 +111,10 @@ public class Resound : MonoBehaviour {
     public static void SetMute(bool mute)
     {
         AudioListener.pause = mute;
-        AudioListener.volume = (mute) ? 0 : defaultVolume;
+        AudioListener.volume = (mute) ? 0 : masterVolume;
         Host.mute = mute;
+
+        if (OnMuteStateChanged != null) OnMuteStateChanged(mute);
     }
 
     /// <summary>
@@ -109,11 +125,21 @@ public class Resound : MonoBehaviour {
         SetMute(!IsMute);
     }
 
-    #region Editor Menu
-#if UNITY_EDITOR
-    private const string menuName = "Rezky Tools/Mute Resound in Editor";
-    private static bool isToggled;  
+    /// <summary>
+    /// Set volume for all sounds.
+    /// </summary>
+    /// <param name="volume"></param>
+    public static void SetVolume(float volume)
+    {
+        masterVolume = Mathf.Clamp01(volume);
+        AudioListener.volume = masterVolume;
+    }
 
+    #region Editor Menu
+    private const string menuName = "Rezky Tools/Mute Resound";
+    private static bool isToggled;
+
+#if UNITY_EDITOR && !RESOUND_CONFIG
     [MenuItem(menuName)]
     private static void MuteInEditor()
     {
@@ -129,12 +155,6 @@ public class Resound : MonoBehaviour {
         isToggled = EditorPrefs.GetBool(menuName, false);
         Menu.SetChecked(menuName, isToggled);
         return true;
-    }
-
-    [MenuItem("Rezky Tools/Open Sound Folder")]
-    private static void OpenSoundFolder()
-    {
-        EditorUtility.RevealInFinder("Assets/Resources/Sounds/readme.txt");
     }
 #endif
 
@@ -154,16 +174,15 @@ public class Resound : MonoBehaviour {
         static ResoundHost _instance;
 
         public bool mute = false;
-        public string playingBGM;
-
         bool lastMuteState = false;
+
+        public string playingBGM;
 
         int updateRate = 120;
         int passedFrame = 0;
 
         AudioSource musicSource;
-        List<AudioSource> sfxSources = new List<AudioSource>();
-        List<SoundFader> soundFaderList = new List<SoundFader>();
+        List<AudioSource> sfxSources = new List<AudioSource>(); 
 
         public static ResoundHost GetInstance()
         {
@@ -172,7 +191,16 @@ public class Resound : MonoBehaviour {
                 GameObject container = new GameObject("ResoundHost");
                 DontDestroyOnLoad(container);
                 _instance = container.AddComponent<ResoundHost>();
+#if RESOUND_CONFIG
+                ResoundSettings settings = ResoundSettings.Instance;
+                masterVolume = settings.masterVolume;
+                defaultBGMVolume = settings.BGMVolume;
+                defaultSFXVolume = settings.SFXVolume;
+                SetMute(settings.muteByDefault);
+#else
                 SetMute(IsMuteInEditor());
+#endif
+
             }
             return _instance;
         }
@@ -213,20 +241,6 @@ public class Resound : MonoBehaviour {
             }
         }
 
-        private void FixedUpdate()
-        {
-            SoundFader soundFader; 
-            for (int i = soundFaderList.Count - 1; i >= 0; i--)
-            {
-                soundFader = soundFaderList[i];
-                soundFader.Update(Time.fixedDeltaTime);
-                if (soundFader.IsComplete)
-                {
-                    soundFaderList.RemoveAt(i);
-                }
-            }
-        }
-
         AudioSource AddAudioSource()
         {
             AudioSource audioSrc = gameObject.AddComponent<AudioSource>();
@@ -234,35 +248,17 @@ public class Resound : MonoBehaviour {
             return audioSrc;
         }
 
-        public AudioSource PlaySFX(string filename, bool loop)
+        public void PlaySFX(string filename, float volume, bool loop = false)
         {
             if (sfxSources.Count < sfxLimit)
             {
-                string filePath = soundResourcePath + "/" + filename;
-                AudioClip clip = Resources.Load<AudioClip>(filePath);
-                if (clip != null)
-                {
-                    AudioSource sfxSource = AddAudioSource();
-                    sfxSource.clip = clip;
-                    sfxSource.loop = loop;
-                    sfxSource.volume = defaultSfxVolume;
-                    sfxSource.Play();
-                    sfxSources.Add(sfxSource);
-                    return sfxSource;
-                }
-                else
-                {
-                    Debug.Log("The audio file you're trying to play is not found! " + filePath);
-                }
+                AudioSource sfxSource = AddAudioSource();
+                sfxSource.clip = Resources.Load<AudioClip>(soundResourcePath + "/" + filename);
+                sfxSource.loop = loop;
+                sfxSource.volume = volume;
+                sfxSource.Play();
+                sfxSources.Add(sfxSource);
             }
-            return null;
-        }
-
-        public AudioSource FadeInSFX(string filename, bool loop)
-        {
-            AudioSource sfxSource = PlaySFX(filename, loop);
-            AddSoundFader(new SoundFader(sfxSource, true, defaultSfxVolume));
-            return sfxSource;
         }
 
         public void StopSFX(string filename = "all")
@@ -277,30 +273,21 @@ public class Resound : MonoBehaviour {
             }
         }
 
-        public AudioSource PlayMusic(string filename)
+        public void PlayMusic(string filename)
         {
             if (musicSource == null)
             {
                 musicSource = AddAudioSource();
                 musicSource.playOnAwake = true;
             }
-            else if (musicSource.volume == 0 && filename == playingBGM)
-            {
-                musicSource.Stop();
-                playingBGM = "";
-            }
 
-            if (playingBGM != filename || !musicSource.isPlaying)
-            {
-                musicSource.clip = Resources.Load<AudioClip>(soundResourcePath + "/" + filename);
-                musicSource.loop = true;
-                musicSource.volume = defaultMusicVolume;
-                musicSource.Play();
+            if (playingBGM == filename && musicSource.isPlaying) return;
 
-                playingBGM = filename;
-            }
-
-            return musicSource;
+            musicSource.clip = Resources.Load<AudioClip>(soundResourcePath + "/" + filename);
+            musicSource.loop = true;
+            musicSource.volume = defaultBGMVolume;
+            musicSource.Play();
+            playingBGM = filename;
         }
 
         public void StopMusic(bool fadeOut = false)
@@ -311,66 +298,18 @@ public class Resound : MonoBehaviour {
             }
         }
 
-        void AddSoundFader(SoundFader soundFader)
+        public void SetMusicVolume(float volume)
         {
-            soundFaderList.Add(soundFader);
-        }
-        
-        public void FadeOutMusic()
-        {
-            AddSoundFader(new SoundFader(musicSource, false, defaultMusicVolume));
-        }
-    }
-    #endregion
-
-    class SoundFader
-    {
-        private float maxVolume = 1f;
-        private AudioSource source;
-        private bool isFadeIn = true;
-        private float updateSpeed = 1f;
-        
-        public bool IsComplete { get; private set; }
-
-        public SoundFader(AudioSource source, bool isFadeIn, float maxVolume = 1f)
-        {
-            this.source = source;
-            this.isFadeIn = isFadeIn;
-            this.maxVolume = maxVolume;            
-            source.volume = isFadeIn ? 0 : maxVolume;
+            musicSource.volume = volume;
         }
 
-        public void Update(float deltaTime)
+        internal void SetSFXVolume(float volume)
         {
-            if (source == null)
+            for (int i = 0; i < sfxSources.Count; i++)
             {
-                IsComplete = true;
-                return;
-            }
-
-            if (isFadeIn)
-            {
-                if (source.volume < maxVolume)
-                {
-                    source.volume += updateSpeed * deltaTime;
-                }
-                else
-                {
-                    IsComplete = true;
-                }
-            }
-            else
-            {
-                if (source.volume > 0)
-                {
-                    source.volume -= updateSpeed * deltaTime;
-                }
-                else
-                {
-                    IsComplete = true;
-                }
+                sfxSources[i].volume = volume;
             }
         }
     }
+#endregion
 }
-
