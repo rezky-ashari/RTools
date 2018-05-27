@@ -10,6 +10,12 @@ public class ResoundSettingsWindow : EditorWindow
     float lastSFXVolume = 0;
     bool initializedValues = false;
 
+    [MenuItem("Rezky Tools/Resound Settings", priority = 1)]
+    static void ShowConfig()
+    {
+        GetWindow(typeof(ResoundSettingsWindow), false, "Resound");
+    }
+
     private void OnGUI()
     {
         ResoundSettings settings = ResoundSettings.Instance;
@@ -71,13 +77,6 @@ public class ResoundSettingsWindow : EditorWindow
                 lastSFXVolume = settings.SFXVolume;
             }
         }
-    }
-
-    [MenuItem("Rezky Tools/Resound Settings")]
-    static void ShowConfig()
-    {
-        //Selection.activeObject = ResoundSettings.Instance;
-        GetWindow(typeof(ResoundSettingsWindow), false, "Resound");
     }
 
     [InitializeOnLoadMethod]
