@@ -24,7 +24,7 @@ public class SceneSwitcherWindow : EditorWindow {
     public static void ShowWindow()
     {
         //Show existing window instance. If one doesn't exist, make one.
-        GetWindow<SceneSwitcherWindow>("SceneSwitcher");
+        GetWindow<SceneSwitcherWindow>(true, "Scene Switcher");
     }
 
     private void OnGUI()
