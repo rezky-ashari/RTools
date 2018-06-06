@@ -6,3 +6,6 @@
 Temp/*
 ProjectSettings/*
 Library/*
+Assets/Resources/Data/*
+Assets/Scripts/Utilities/Playlist.cs
+Assets/Scripts/Scenes/GameScenes.cs

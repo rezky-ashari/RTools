@@ -65,6 +65,16 @@ public class AnimationHandler : MonoBehaviour, IPointerClickHandler
         Resound.PlaySFX(name, true);
     }
 
+    void StopAllSound()
+    {
+        Resound.StopSFX();
+    }
+
+    void StopSoundLoop(string name)
+    {
+        Resound.StopSFX(name);
+    }
+
     void OnStartAnimation()
     {
         onStart.Invoke();
