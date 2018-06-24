@@ -1,18 +1,29 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
 [CustomEditor(typeof(Sequencer))]
 public class SequencerEditor : Editor {
     
+    static GUIContent gcStartRecord;
+    static GUIContent gcStopRecord;
+    static GUILayoutOption smallButtonLayout;
+    static GUIStyle labelStyle;
 
     public override void OnInspectorGUI()
     {
         Sequencer seq = (Sequencer)target;
         
         EditorGUILayout.Space();
+
+        if (labelStyle == null)
+        {
+            labelStyle = "Foldout";
+            labelStyle.wordWrap = true;
+        }
 
         seq.playOnAwake = EditorGUILayout.Toggle("Play On Awake", seq.playOnAwake);
         if (Application.isPlaying)
@@ -32,11 +43,19 @@ public class SequencerEditor : Editor {
 
             SequencerActionParent action = seq.actions[i];
             string actionName = "Action #" + (i);
-
+            string label = actionName;
+            if (!action.foldout)
+            {
+                label = actionName + " : " + action.ModeInfo;
+                for (int k = 0; k < action.linkedActions.Count; k++)
+                {
+                    label += ", " + action.linkedActions[k].ModeInfo;
+                }
+            }
             EditorGUILayout.BeginHorizontal();
             
             action.active = EditorGUILayout.Toggle("", action.active, GUILayout.Width(12));
-            action.foldout = GUILayout.Toggle(action.foldout, !action.foldout? actionName + ": " + action.ModeInfo : actionName, "Foldout", GUILayout.ExpandWidth(true));
+            action.foldout = GUILayout.Toggle(action.foldout, label, labelStyle, GUILayout.ExpandWidth(true));
             
             EditorGUILayout.EndHorizontal();
 
@@ -91,7 +110,7 @@ public class SequencerEditor : Editor {
         }
         EditorGUILayout.EndHorizontal();
 
-        if (GUI.changed)
+        if (GUI.changed && !Application.isPlaying)
         {
             EditorSceneManager.MarkAllScenesDirty();
         }
@@ -112,9 +131,147 @@ public class SequencerEditor : Editor {
                 break;
             case SequencerActionMode.PlayAnimation:
                 SetAnimator(action);
-                SetName(action, "Animation Name");
+                if (Application.isPlaying)
+                {
+                    EditorGUILayout.TextField("Animation", action.target);
+                }
+                else
+                {
+                    if (action.animator != null)
+                    {
+                        if (action.animator != action.lastAnimator || action.Options == null)
+                        {
+                            action.Options = GetAnimationStates(action.animator);
+                            action.lastAnimator = action.animator;
+                        }
+                        action.selected = EditorGUILayout.Popup("Animation", action.selected, action.Options);
+                        //if (action.optionList == null) action.optionList = new SequencerAction.Options();
+                        action.target = action.SelectedValue; // SetOptionsPopup("Animation", action.optionList);
+                    }
+                    else
+                    {
+                        action.lastAnimator = null;
+                        action.selected = 0;
+                        action.Options = null;
+                    }
+                }                
+                break;
+            case SequencerActionMode.InvokeFunction:
+                SetGameObject(action);
+                if (Application.isPlaying) {
+                    EditorGUILayout.ObjectField("Script", action.script, typeof(MonoBehaviour), true);
+                    EditorGUILayout.TextField("Function", action.target);
+                }
+                else
+                {
+                    if (action.gameObject != null)
+                    {
+                        //SetScript(action);
+                        if (action.lastGameObject != action.gameObject || action.Options == null)
+                        {
+                            action.Options = GetScriptsAttached(action.gameObject);
+                            action.lastGameObject = action.gameObject;
+                        }
+                        action.selected = EditorGUILayout.Popup("Script", action.selected, action.Options);
+                        action.script = (MonoBehaviour)action.gameObject.GetComponent(action.SelectedValue);
+                        string[] methods = GetMethods(action.script);
+                        if (methods.Length > 0)
+                        {
+                            action.selectedMethod = (int)Mathf.Clamp(EditorGUILayout.Popup("Function", action.selectedMethod, methods), 0, methods.Length);
+                            string[] methodData = methods[action.selectedMethod].Split('(');
+                            action.target = methodData[0];
+                            action.paramType = methodData[1].Replace(")", "").ToLower();
+                            switch (action.paramType)
+                            {
+                                case "string":
+                                    action.paramString = EditorGUILayout.TextField("Parameter", action.paramString);
+                                    break;
+                                case "int":
+                                    action.paramInt = EditorGUILayout.IntField("Parameter", action.paramInt);
+                                    break;
+                                case "float":
+                                    action.paramFloat = EditorGUILayout.FloatField("Parameter", action.paramFloat);
+                                    break;
+                                default:
+                                    //Debug.Log("Type not handled: " + action.paramType);
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            EditorGUILayout.HelpBox("There is no invokeable function in this sript.", MessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        action.lastGameObject = null;
+                        action.selected = 0;
+                    }
+                }                
                 break;
         }
+    }
+
+
+
+    string[] GetScriptsAttached(GameObject gameObject)
+    {
+        Component[] behaviours = gameObject.GetComponents(typeof(MonoBehaviour));
+        string[] behaviourNames = new string[behaviours.Length];
+        for (int i = 0; i < behaviours.Length; i++)
+        {
+            behaviourNames[i] = behaviours[i].GetType().Name;
+        }
+        return behaviourNames;
+    }
+
+    string[] GetMethods(MonoBehaviour mono)
+    {
+        var typeWithMethods = mono.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        List<string> methodList = new List<string>();
+        ParameterInfo[] parameterInfo;
+        foreach (var function in typeWithMethods)
+        {
+            parameterInfo = function.GetParameters();
+            if (function.GetParameters().Length <= 1)
+            {
+                string paramType = parameterInfo.Length == 1 ? parameterInfo[0].ParameterType.Name.ToLower() : "";
+                if (paramType.StartsWith("int")) paramType = "int";
+                else if (paramType == "single") paramType = "float";
+                methodList.Add(function.Name + "(" + paramType + ")");
+            }            
+        }
+        return methodList.ToArray();
+    }
+
+    string[] GetAnimationStates(Animator animator)
+    {
+        var runtimeController = animator.runtimeAnimatorController;
+        if (runtimeController == null)
+        {
+            Debug.Log("RuntimeAnimatorController must not be null.");
+            return new string[] { };
+        }
+
+        var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(AssetDatabase.GetAssetPath(runtimeController));
+        if (controller == null)
+        {
+            Debug.LogErrorFormat("AnimatorController must not be null.");
+            return new string[] { };
+        }
+
+        ChildAnimatorState[] states = controller.layers[0].stateMachine.states;
+        string[] stateNames = new string[states.Length];
+        for (int i = 0; i < states.Length; i++)
+        {
+            stateNames[i] = states[i].state.name;
+        }
+        return stateNames;
+    }
+
+    void SetScript(SequencerAction action)
+    {
+        action.script = (MonoBehaviour)EditorGUILayout.ObjectField("Script", action.script, typeof(MonoBehaviour), true);
     }
 
     void SetDuration(SequencerAction action, string label = "Duration")
@@ -124,12 +281,45 @@ public class SequencerEditor : Editor {
 
     void SetPosition(SequencerAction action)
     {
-        action.position = EditorGUILayout.Vector3Field("Position", action.position);
+        if (gcStartRecord == null)
+        {
+            gcStartRecord = new GUIContent("R", "Start Recording");
+            gcStopRecord = new GUIContent("S", "Stop Recording");
+            smallButtonLayout = GUILayout.Width(20);
+        }
+
+        if (action.gameObject != null)
+        {
+            EditorGUILayout.BeginHorizontal();
+            if (action.isRecording)
+            {
+                action.position = EditorGUILayout.Vector3Field("Position", action.gameObject.transform.localPosition);
+                if (GUILayout.Button(gcStopRecord, smallButtonLayout))
+                {
+                    action.isRecording = false;
+                    action.gameObject.transform.localPosition = action.positionBeforeRecording;
+                }
+            }
+            else
+            {
+                action.position = EditorGUILayout.Vector3Field("Position", action.position);
+                if (GUILayout.Button(gcStartRecord, smallButtonLayout))
+                {
+                    action.positionBeforeRecording = action.gameObject.transform.localPosition;
+                    action.isRecording = true;
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+        else
+        {
+            action.position = EditorGUILayout.Vector3Field("Position", action.position);
+        }
     }
 
     void SetName(SequencerAction action, string label = "Name")
     {
-        action.name = EditorGUILayout.TextField(label, action.name);
+        action.target = EditorGUILayout.TextField(label, action.target);
     }
 
     void SetGameObject(SequencerAction action)
