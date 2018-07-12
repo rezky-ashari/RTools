@@ -77,10 +77,13 @@ public class UnifiedScalerWindow : EditorWindow {
             if (GUILayout.Button("-10%")) currentScale -= 0.1f;
             GUILayout.EndHorizontal();
 
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Round")) currentScale = (float)System.Math.Round(currentScale, 1);
             if (isContainingImage)
             {
                 setToNativeSize = GUILayout.Button(new GUIContent("Set to Native Size", "Set the selected image to it's native size"));
             }
+            GUILayout.EndHorizontal();
 
             if (EditorGUI.EndChangeCheck())
             {

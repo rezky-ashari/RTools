@@ -24,16 +24,17 @@ public class ScriptableData<T> : ScriptableObject where T : ScriptableObject {
 
     static T Create()
     {
-        T[] dataList = Resources.FindObjectsOfTypeAll<T>();
+        T[] dataList = Resources.LoadAll<T>("Data");
         T data = dataList.Length > 0? dataList[0] : null;
         if (data == null)
         {
-            //Debug.Log("Settings not found in " + filePath + ", Create a new one.");
+            //Debug.Log("Settings not found in Data folder, Create a new one.");
             data = CreateInstance<T>();
 #if UNITY_EDITOR
             CreateFolderIfNotExists("Assets", "Resources");
             CreateFolderIfNotExists("Assets/Resources", "Data");
-            string dataName = System.Text.RegularExpressions.Regex.Replace(ObjectNames.GetInspectorTitle(data).Replace(" (Script)", ""), @"\s+", "");
+            string inspectorTitle = System.Text.RegularExpressions.Regex.Replace(ObjectNames.GetInspectorTitle(data), "[()]", "");
+            string dataName = System.Text.RegularExpressions.Regex.Replace(inspectorTitle.Replace(" (Script)", ""), @"\s+", "");
             AssetDatabase.CreateAsset(data, string.Format("Assets/Resources/Data/{0}.asset", dataName));
             AssetDatabase.SaveAssets();
 #endif
