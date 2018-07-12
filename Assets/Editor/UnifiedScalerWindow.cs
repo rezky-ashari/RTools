@@ -63,7 +63,8 @@ public class UnifiedScalerWindow : EditorWindow {
             bool isContainingImage = true;
             for (int i = 0; i < selectedTransforms.Length; i++)
             {
-                selectedTransforms[i].localScale = new Vector3(currentScale, currentScale, currentScale);
+                //selectedTransforms[i].localScale = new Vector3(currentScale, currentScale, currentScale);
+                ScaleWithMultiplier(ref selectedTransforms[i], currentScale);
                 image = selectedTransforms[i].GetComponent<Image>();
                 if (image == null) isContainingImage = false;
                 else if (setToNativeSize) image.SetNativeSize();
@@ -92,13 +93,28 @@ public class UnifiedScalerWindow : EditorWindow {
         }
     }
 
+    void ScaleWithMultiplier(ref Transform transform, float scale)
+    {
+        Vector3 localScale = transform.localScale;
+        Vector3 multiplier = Vector3.one;
+        multiplier.x = GetMultiplier(localScale.x);
+        multiplier.y = GetMultiplier(localScale.y);
+        multiplier.z = GetMultiplier(localScale.z);
+        transform.localScale = new Vector3(scale * multiplier.x, scale * multiplier.y, scale * multiplier.z);
+    }
+
+    float GetMultiplier(float value)
+    {
+        return value < 0 ? -1 : 1;
+    }
+
     private void OnSelectionChange()
     {
         currentGameObject = Selection.activeGameObject;
         selectedTransforms = Selection.transforms;
         if (currentGameObject != null)
         {
-            currentScale = currentGameObject.transform.localScale.x;
+            currentScale = Mathf.Abs(currentGameObject.transform.localScale.x);
             Repaint();
         }        
     }

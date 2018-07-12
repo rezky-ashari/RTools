@@ -42,7 +42,7 @@ public class ImageSwitcher : MonoBehaviour {
         get { return activeImage; }
         set
         {
-            activeImage = value;
+            activeImage = (int)Mathf.Repeat(value, images.Count);
             Update();
         }
     }

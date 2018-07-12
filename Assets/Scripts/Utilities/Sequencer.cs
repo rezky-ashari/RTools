@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -146,11 +147,15 @@ public class Sequencer : MonoBehaviour {
                 break;
             case SequencerActionMode.PlayAnimation:
                 float animLength = action.PlayAnimation();
-                if (isParentAction)
+                StartCoroutine(WaitForNextFrame(()=>
                 {
-                    RezTween.DelayedCall(animLength, ExecuteNextAct);
-                    Debug.Log("Play anim " + action.target + " with length: " + animLength);
-                }                
+                    animLength = action.animator.GetCurrentAnimatorStateInfo(0).length;
+                    if (isParentAction)
+                    {
+                        RezTween.DelayedCall(animLength, ExecuteNextAct);
+                        Debug.Log("Play anim " + action.target + " with length: " + animLength);
+                    }
+                }));                         
                 break;
             case SequencerActionMode.InvokeFunction:
                 //action.script.Invoke(action.target, 0);
@@ -234,9 +239,15 @@ public class Sequencer : MonoBehaviour {
                 break;
         }
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    IEnumerator WaitForNextFrame(Action action)
+    {
+        yield return new WaitForEndOfFrame();
+        action();
+    }
+
+    // Update is called once per frame
+    void Update () {
 		
 	}
 
