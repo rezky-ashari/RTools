@@ -87,6 +87,6 @@ public class TransporterEditor : Editor {
             }
         }       
 
-        if (!Application.isPlaying || transporter.enabled) transporter.Update();
+        if (!Application.isPlaying && transporter.enabled) transporter.Update();
     }
 }

@@ -8,6 +8,11 @@ using UnityEngine.EventSystems;
 public class DraggableUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler {
 
     /// <summary>
+    /// Whether to disable drag for all dragable UIs.
+    /// </summary>
+    public static bool disableDrag = false;
+
+    /// <summary>
     /// Current dragged gameobject.
     /// </summary>
     public static GameObject Current
@@ -174,6 +179,8 @@ public class DraggableUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        if (disableDrag) return;
+
         if (IsOverlayMode)
         {
             offset = transform.position - Input.mousePosition;
@@ -199,6 +206,8 @@ public class DraggableUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (disableDrag) return;
+
         Vector3 target;
         if (IsOverlayMode)
         {
@@ -217,6 +226,8 @@ public class DraggableUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     public void OnPointerUp(PointerEventData eventData)
     {
+        if (disableDrag) return;
+
         onDrop.Invoke();
         if (OnEndDrag != null) OnEndDrag();
         if (backOnDrop) BackToDefaultPosition();
