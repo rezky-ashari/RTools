@@ -18,6 +18,20 @@ public class RezAutomate : AssetPostprocessor
         get { return Application.dataPath + "/Scripts/Utilities/Playlist.cs"; }
     }
 
+    [MenuItem("Rezky Tools/Resolve/Playlist")]
+    static void ResolvePlaylist()
+    {
+        CreatePlaylist();
+        EditorUtility.DisplayDialog("Resolve Playlist", "Succesfully recreate the Playlist", "OK");
+    }
+
+    [MenuItem("Rezky Tools/Resolve/GameScenes")]
+    static void ResolveGameScenes()
+    {
+        CreateSceneList();
+        EditorUtility.DisplayDialog("Resolve GameScenes", "Succesfully recreate the GameScenes", "OK");
+    }
+
     static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
     {
         foreach (string str in importedAssets)

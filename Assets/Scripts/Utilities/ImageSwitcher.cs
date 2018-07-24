@@ -20,7 +20,6 @@ public class ImageSwitcher : MonoBehaviour {
     public bool linkToTransporter = false;
     public List<Sprite> images = new List<Sprite>();
 
-    Image imageComponent;
     int lastActiveImage;
 
     /// <summary>
@@ -42,7 +41,7 @@ public class ImageSwitcher : MonoBehaviour {
         get { return activeImage; }
         set
         {
-            activeImage = value;
+            activeImage = (int)Mathf.Repeat(value, images.Count);
             Update();
         }
     }
@@ -65,30 +64,40 @@ public class ImageSwitcher : MonoBehaviour {
     }
     Transporter _transporter;
 
-	// Use this for initialization
-	void Start () {
-        imageComponent = GetComponent<Image>();
-        if (images.Count == 0) images.Add(imageComponent.sprite);
+    Image ImageComponent
+    {
+        get
+        {
+            if (_imageComponent == null) _imageComponent = GetComponent<Image>();
+            return _imageComponent;
+        }
+    }
+    Image _imageComponent;
+
+
+    // Use this for initialization
+    void Start () {        
+        if (images.Count == 0) images.Add(ImageComponent.sprite);
     }
 	
 	// Update is called once per frame
 	void Update () {
 
-        if (images.Count == 0) images.Add(imageComponent.sprite);
+        if (images.Count == 0) images.Add(ImageComponent.sprite);
         if (lastActiveImage != activeImage)
         {
             activeImage = Mathf.Clamp(activeImage, 0, images.Count - 1);
-            imageComponent.sprite = images[activeImage];
-            if (imageComponent.sprite == null)
+            ImageComponent.sprite = images[activeImage];
+            if (ImageComponent.sprite == null)
             {
                 // hide the white box
-                imageComponent.enabled = false;
+                ImageComponent.enabled = false;
             }
             else
             {
-                imageComponent.preserveAspect = preserveAspect;
-                if (useNativeSize) imageComponent.SetNativeSize();
-                imageComponent.enabled = true;
+                ImageComponent.preserveAspect = preserveAspect;
+                if (useNativeSize) ImageComponent.SetNativeSize();
+                ImageComponent.enabled = true;
             }
             lastActiveImage = activeImage;
         }
