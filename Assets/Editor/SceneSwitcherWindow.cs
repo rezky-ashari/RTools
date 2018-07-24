@@ -29,44 +29,51 @@ public class SceneSwitcherWindow : EditorWindow {
 
     private void OnGUI()
     {
-        if (toggleButtonStyleNormal == null)
+        if (Application.isPlaying)
         {
-            toggleButtonStyleNormal = "Button";
-            toggleButtonStyleToggled = new GUIStyle(toggleButtonStyleNormal);
-            toggleButtonStyleToggled.normal.background = toggleButtonStyleToggled.active.background;
+            EditorGUILayout.HelpBox("SceneSwitcher can not be used in Play Mode.", MessageType.Info);
         }
+        else
+        {
+            if (toggleButtonStyleNormal == null)
+            {
+                toggleButtonStyleNormal = "Button";
+                toggleButtonStyleToggled = new GUIStyle(toggleButtonStyleNormal);
+                toggleButtonStyleToggled.normal.background = toggleButtonStyleToggled.active.background;
+            }
 
-        if (lastActiveScenePath != "")
-        {
-            if (GUILayout.Button("Back to " + Path.GetFileNameWithoutExtension(lastActiveScenePath))) SwitchScene(lastActiveScenePath);
-            GUILayout.Space(10);
-        }
+            if (lastActiveScenePath != "")
+            {
+                if (GUILayout.Button("Back to " + Path.GetFileNameWithoutExtension(lastActiveScenePath))) SwitchScene(lastActiveScenePath);
+                GUILayout.Space(10);
+            }
 
-        GUILayout.BeginHorizontal();
-        GUILayout.Label("Quick Switch:", EditorStyles.boldLabel);
-        
-        if (GUILayout.Button("Scenes in Build Settings", showScenesInBuildSettings ? toggleButtonStyleToggled : toggleButtonStyleNormal))
-        {
-            showScenesInBuildSettings = true;
-            showAllScenes = false;
-        }
-        if (GUILayout.Button("All Scenes", showAllScenes ? toggleButtonStyleToggled : toggleButtonStyleNormal))
-        {
-            showScenesInBuildSettings = false;
-            showAllScenes = true;
-        }
-        GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Quick Switch:", EditorStyles.boldLabel);
 
-        scenesScrollPosition = EditorGUILayout.BeginScrollView(scenesScrollPosition);
-        if (showScenesInBuildSettings)
-        {
-            DisplayScenesInBuildSettings();
-        }
-        if (showAllScenes)
-        {
-            DisplayAllScenes();
-        }
-        EditorGUILayout.EndScrollView();
+            if (GUILayout.Button("Scenes in Build Settings", showScenesInBuildSettings ? toggleButtonStyleToggled : toggleButtonStyleNormal))
+            {
+                showScenesInBuildSettings = true;
+                showAllScenes = false;
+            }
+            if (GUILayout.Button("All Scenes", showAllScenes ? toggleButtonStyleToggled : toggleButtonStyleNormal))
+            {
+                showScenesInBuildSettings = false;
+                showAllScenes = true;
+            }
+            GUILayout.EndHorizontal();
+
+            scenesScrollPosition = EditorGUILayout.BeginScrollView(scenesScrollPosition);
+            if (showScenesInBuildSettings)
+            {
+                DisplayScenesInBuildSettings();
+            }
+            if (showAllScenes)
+            {
+                DisplayAllScenes();
+            }
+            EditorGUILayout.EndScrollView();
+        }        
     }
 
     private void DisplayAllScenes()
@@ -76,7 +83,7 @@ public class SceneSwitcherWindow : EditorWindow {
         
         if (paths.Length == 0)
         {
-            EditorGUILayout.HelpBox("There is no scene asset saved in your project.", MessageType.Warning);
+            EditorGUILayout.HelpBox("There are no scene asset saved in your project.", MessageType.Warning);
         }
         else
         {

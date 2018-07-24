@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 
 
@@ -15,6 +16,8 @@ public class AnimationHandlerEditor : Editor {
     GUIContent onCompleteLabel;
     SerializedProperty onStartProperty;
     SerializedProperty onCompleteProperty;
+
+    string[] stateNames;
 
     private void OnEnable()
     {
@@ -37,7 +40,13 @@ public class AnimationHandlerEditor : Editor {
         {
             EditorGUILayout.BeginHorizontal();
             //EditorGUILayout.LabelField("State Name", GUILayout.Width(80));
-            stateName = EditorGUILayout.TextField("Play Animation", stateName);
+            if (stateNames == null)
+            {
+                stateNames = GetAnimationStates(animationHandler.Animator);
+            }
+            int selected = System.Array.IndexOf(stateNames, stateName);
+            selected = EditorGUILayout.Popup("Play Animation", selected > 0? selected : 0, stateNames);
+            stateName = stateNames[selected];  //EditorGUILayout.TextField("Play Animation", stateName);
             if (GUILayout.Button("Play", GUILayout.Width(60)))
             {
                 animationHandler.Play(stateName);
@@ -53,5 +62,30 @@ public class AnimationHandlerEditor : Editor {
         EditorGUILayout.PropertyField(onCompleteProperty, onCompleteLabel);
 
         serializedObject.ApplyModifiedProperties();
+    }
+
+    static string[] GetAnimationStates(Animator animator)
+    {
+        var runtimeController = animator.runtimeAnimatorController;
+        if (runtimeController == null)
+        {
+            Debug.Log("RuntimeAnimatorController must not be null.");
+            return new string[] { };
+        }
+
+        var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(AssetDatabase.GetAssetPath(runtimeController));
+        if (controller == null)
+        {
+            Debug.LogErrorFormat("AnimatorController must not be null.");
+            return new string[] { };
+        }
+
+        ChildAnimatorState[] states = controller.layers[0].stateMachine.states;
+        string[] stateNames = new string[states.Length];
+        for (int i = 0; i < states.Length; i++)
+        {
+            stateNames[i] = states[i].state.name;
+        }
+        return stateNames;
     }
 }

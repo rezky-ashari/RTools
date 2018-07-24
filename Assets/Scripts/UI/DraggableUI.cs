@@ -2,9 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 public class DraggableUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler {
+
+    /// <summary>
+    /// Whether to disable drag for all dragable UIs.
+    /// </summary>
+    public static bool disableDrag = false;
 
     /// <summary>
     /// Current dragged gameobject.
@@ -28,8 +34,13 @@ public class DraggableUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     public float boundTop;
     public float boundBottom;
 
+    public bool lockSiblingIndex = false;
+
     public bool backOnDrop = false;
     public Vector3 defaultPosition;
+
+    public UnityEvent onDrag;
+    public UnityEvent onDrop;
 
     /// <summary>
     /// Event listener when drag operation start.
@@ -43,6 +54,8 @@ public class DraggableUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     /// Called when this draggable UI returned to it's default position.
     /// </summary>
     public event Action OnReturnedToDefaultPosition;
+
+    Action onComplete;
 
     Canvas _parentCanvas;
     Vector3 offset;
@@ -166,6 +179,8 @@ public class DraggableUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        if (disableDrag) return;
+
         if (IsOverlayMode)
         {
             offset = transform.position - Input.mousePosition;
@@ -174,9 +189,13 @@ public class DraggableUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         {
             offset = transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition);
         }
+
         defaultSiblingIndex = transform.GetSiblingIndex();
-        transform.SetAsLastSibling();
+        if (!lockSiblingIndex) transform.SetAsLastSibling();
+
         _current = gameObject;
+
+        onDrag.Invoke();
         if (OnStartDrag != null) OnStartDrag();
     }
 
@@ -187,6 +206,8 @@ public class DraggableUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (disableDrag) return;
+
         Vector3 target;
         if (IsOverlayMode)
         {
@@ -205,20 +226,39 @@ public class DraggableUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     public void OnPointerUp(PointerEventData eventData)
     {
+        if (disableDrag) return;
+
+        onDrop.Invoke();
         if (OnEndDrag != null) OnEndDrag();
         if (backOnDrop) BackToDefaultPosition();
         _current = null;
     }
 
-    public void BackToDefaultPosition(Action onComplete = null)
+    public void BackToDefaultPosition(Action onComplete)
     {
-        RezTween tween = RezTween.MoveTo(gameObject, 0.5f, defaultPosition);
-        tween.OnComplete = () =>
+        this.onComplete = onComplete;
+        BackToDefaultPosition();
+    }
+
+    public void BackToDefaultPosition()
+    {
+        if (gameObject.activeInHierarchy)
         {
+            RezTween tween = RezTween.MoveTo(gameObject, 0.5f, defaultPosition);
+            tween.OnComplete = () =>
+            {
+                if (onComplete != null) onComplete();
+                if (OnReturnedToDefaultPosition != null) OnReturnedToDefaultPosition();
+                BackToDefaultSiblingIndex();
+            };
+        }
+        else
+        {
+            transform.localPosition = defaultPosition;
             if (onComplete != null) onComplete();
             if (OnReturnedToDefaultPosition != null) OnReturnedToDefaultPosition();
             BackToDefaultSiblingIndex();
-        };
+        }
     }
 
     public void BackToDefaultSiblingIndex()

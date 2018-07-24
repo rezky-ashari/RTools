@@ -21,6 +21,9 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
     public string ID;
     public bool interactable = true;
 
+    [Tooltip("Prevent interactable state to change the image's alpha.")]
+    public bool lockAlpha = false;
+
     [Tooltip("Whether to ignore click on transparent area of this button. You have to check the 'Read/Write Enabled' in image's Import Settings.")]
     public bool ignoreTransparentArea = false;
 
@@ -145,16 +148,19 @@ public class GameButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler 
 
     private void UpdateAlpha()
     {
-        currentAlpha = interactable ? 1f : 0.5f;
-        if (currentAlpha != lastAlpha)
+        if (!lockAlpha)
         {
-            ProcessImages(image =>
+            currentAlpha = interactable ? 1f : 0.5f;
+            if (currentAlpha != lastAlpha)
             {
-                Color currentColor = image.color;
-                image.color = new Color(currentColor.r, currentColor.g, currentColor.b, currentAlpha);
-            });
-            lastAlpha = currentAlpha;
-        }        
+                ProcessImages(image =>
+                {
+                    Color currentColor = image.color;
+                    image.color = new Color(currentColor.r, currentColor.g, currentColor.b, currentAlpha);
+                });
+                lastAlpha = currentAlpha;
+            }
+        }       
     }
 
     /// <summary>

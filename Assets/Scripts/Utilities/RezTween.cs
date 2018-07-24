@@ -193,6 +193,11 @@ public class RezTween {
         }
         else
         {
+            if (ease == EaseFunctions.Linear && parentPropName.ToLower().Contains("eulerangle"))
+            {
+                ease = EaseFunctions.LinearAngle;
+            }
+
             TweenManager.AddTween(this);
         }        
     }
@@ -460,7 +465,6 @@ public class RezTween {
     /// </summary>
     public void Destroy()
     {
-        TweenManager.RemoveTween(this);
         TweenManager.RemoveTween(this);
         if (tweenValues != null)
         {
@@ -1258,6 +1262,11 @@ public class RezTween {
             return Mathf.Lerp(start, end, time);
         }
 
+        internal static float LinearAngle(float start, float end, float time)
+        {
+            return Mathf.LerpAngle(start, end, time);
+        }
+
         internal static float Spring(float start, float end, float value)
         {
             value = Mathf.Clamp01(value);
@@ -1508,6 +1517,7 @@ public class RezTween {
         {
             for (int i = tweens.Count - 1; i >= 0; i--)
             {
+                if (i >= 0 && i < tweens.Count)
                 tweens[i].Update(Time.smoothDeltaTime);
             }
             activeTween = tweens.Count;

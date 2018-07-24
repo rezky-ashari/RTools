@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -110,7 +111,7 @@ public class RezAutomate : AssetPostprocessor
             savedScenes.Add(sceneList[i]);
             string filename = Path.GetFileNameWithoutExtension(sceneList[i]);
             if (filename.Length == 0) continue;
-            contents += string.Format("\n\t public const string {0} = \"{1}\";", filename.Replace(" ", "_"), filename);
+            contents += string.Format("\n\t public const string {0} = \"{1}\";", filename.Replace(" ", "").Replace("-", "_"), filename);
         }
         using (StreamWriter sw = new StreamWriter(Application.dataPath + "/Scripts/Scene/GameScenes.cs"))
         {

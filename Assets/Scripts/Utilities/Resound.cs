@@ -254,10 +254,17 @@ public class Resound {
             {
                 AudioSource sfxSource = AddAudioSource();
                 sfxSource.clip = Resources.Load<AudioClip>(soundResourcePath + "/" + filename);
-                sfxSource.loop = loop;
-                sfxSource.volume = volume;
-                sfxSource.Play();
-                sfxSources.Add(sfxSource);
+                if (sfxSource.clip != null)
+                {
+                    sfxSource.loop = loop;
+                    sfxSource.volume = volume;
+                    sfxSource.Play();
+                    sfxSources.Add(sfxSource);
+                }
+                else
+                {
+                    Debug.LogWarning("Can't play SFX because audio file '" + filename + "' is not in 'Sounds' Folder");
+                }
             }
         }
 
