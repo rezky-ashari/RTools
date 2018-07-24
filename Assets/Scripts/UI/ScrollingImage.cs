@@ -9,7 +9,6 @@ public class ScrollingImage : MonoBehaviour {
     public float offset = 0f;
     public Transform clone;
 
-    Vector3 velocity = Vector3.zero;
     float lastOffset = 0;
 
     Image _image;
@@ -60,19 +59,5 @@ public class ScrollingImage : MonoBehaviour {
         {
             UpdateOffset();
         }
-        //if (speed > 0)
-        //{
-        //    if (clone.position.x <= 0)
-        //    {
-        //        transform.localPosition = Vector3.zero;
-        //    }
-        //}
-        //else
-        //{
-        //    if (clone.position.x >= 0)
-        //    {
-        //        transform.localPosition = Vector3.zero;
-        //    }
-        //}
     }
 }

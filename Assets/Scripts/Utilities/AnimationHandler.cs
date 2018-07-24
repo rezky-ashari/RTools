@@ -19,7 +19,7 @@ public class AnimationHandler : MonoBehaviour, IPointerClickHandler
     public UnityEvent onComplete;
 
     Animator _animator;
-    Animator Animator
+    public Animator Animator
     {
         get
         {
@@ -98,5 +98,10 @@ public class AnimationHandler : MonoBehaviour, IPointerClickHandler
     {
         if (!string.IsNullOrEmpty(onClickPlay)) Animator.Play(onClickPlay);
         if (!string.IsNullOrEmpty(clickID)) Scene.SendClickEvent(clickID);
+    }
+
+    public void SendSceneEvent(string eventName)
+    {
+        Scene.SendEvent(eventName);
     }
 }

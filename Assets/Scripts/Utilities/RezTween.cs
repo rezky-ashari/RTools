@@ -338,7 +338,7 @@ public class RezTween {
     {
         if (paused)
         {
-            UpdateValues();
+            //UpdateValues();
             return;
         }
 

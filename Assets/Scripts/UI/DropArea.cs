@@ -49,9 +49,8 @@ public class DropArea : MonoBehaviour {
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (OnEnter != null) OnEnter(collision.gameObject);
         currentGameObject = collision.gameObject;
-        
+        if (OnEnter != null) OnEnter(collision.gameObject);
     }
 
     private void OnTriggerExit2D(Collider2D collision)
