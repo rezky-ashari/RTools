@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -33,7 +34,14 @@ public class AnimationHandlerEditor : Editor {
     {
         AnimationHandler animationHandler = (AnimationHandler)target;
 
-        animationHandler.onClickPlay = EditorGUILayout.TextField(onClickPlayLabel, animationHandler.onClickPlay);
+        if (animationHandler.animationStates == null)
+        {
+            animationHandler.animationStates = GetAnimationStates(animationHandler.Animator);
+        }
+
+        //animationHandler.onClickPlay = EditorGUILayout.TextField(onClickPlayLabel, animationHandler.onClickPlay);
+        animationHandler.selectedState = EditorGUILayout.Popup("Play On Click", animationHandler.selectedState, animationHandler.animationStates);
+        animationHandler.onClickPlay = animationHandler.SelectedStateName;
         animationHandler.clickID = EditorGUILayout.TextField(clickIDLabel, animationHandler.clickID);
 
         if (Application.isPlaying)
@@ -42,9 +50,11 @@ public class AnimationHandlerEditor : Editor {
             //EditorGUILayout.LabelField("State Name", GUILayout.Width(80));
             if (stateNames == null)
             {
-                stateNames = GetAnimationStates(animationHandler.Animator);
+                int statesLength = animationHandler.animationStates.Length - 1;
+                stateNames = new string[statesLength];
+                Array.Copy(animationHandler.animationStates, 1, stateNames, 0, statesLength);
             }
-            int selected = System.Array.IndexOf(stateNames, stateName);
+            int selected = Array.IndexOf(stateNames, stateName);
             selected = EditorGUILayout.Popup("Play Animation", selected > 0? selected : 0, stateNames);
             stateName = stateNames[selected];  //EditorGUILayout.TextField("Play Animation", stateName);
             if (GUILayout.Button("Play", GUILayout.Width(60)))
@@ -81,10 +91,11 @@ public class AnimationHandlerEditor : Editor {
         }
 
         ChildAnimatorState[] states = controller.layers[0].stateMachine.states;
-        string[] stateNames = new string[states.Length];
+        string[] stateNames = new string[states.Length + 1];
+        stateNames[0] = "(none)";
         for (int i = 0; i < states.Length; i++)
         {
-            stateNames[i] = states[i].state.name;
+            stateNames[i + 1] = states[i].state.name;
         }
         return stateNames;
     }

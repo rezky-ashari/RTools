@@ -18,6 +18,17 @@ public class AnimationHandler : MonoBehaviour, IPointerClickHandler
     public UnityEvent onStart;
     public UnityEvent onComplete;
 
+    public string[] animationStates;
+    public int selectedState = 0;
+
+    public string SelectedStateName
+    {
+        get
+        {
+            return animationStates[selectedState];
+        }
+    }
+
     Animator _animator;
     public Animator Animator
     {
@@ -96,7 +107,7 @@ public class AnimationHandler : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (!string.IsNullOrEmpty(onClickPlay)) Animator.Play(onClickPlay);
+        if (!string.IsNullOrEmpty(onClickPlay) && onClickPlay != "(none)") Play(onClickPlay);
         if (!string.IsNullOrEmpty(clickID)) Scene.SendClickEvent(clickID);
     }
 
