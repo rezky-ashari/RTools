@@ -8,9 +8,7 @@ namespace RTools
     /// <summary>
     /// <para>
     /// Setup window for GlobalCanvasScaler.
-    /// Menu created:
-    /// 1. RTools > Global Canvas Setup,
-    /// 2. GameObject > UI > Game Canvas.
+    /// Menu created: RTools > Global Canvas Setup
     /// </para>
     /// Author: Rezky Ashari
     /// </summary>
@@ -23,8 +21,7 @@ namespace RTools
             GetWindow(typeof(GlobalCanvasScalerSetup), false, "Canvas Setup");
         }
 
-        [MenuItem("GameObject/UI/Game Canvas")]
-        public static void AddGameCanvas()
+        public static void CreateGameCanvas()
         {
             GameObject gameObject = new GameObject("GameCanvas");
             gameObject.AddComponent<Canvas>();

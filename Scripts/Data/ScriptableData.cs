@@ -13,7 +13,6 @@ namespace RTools
     /// </summary>
     public class ScriptableData<T> : ScriptableObject where T : ScriptableObject
     {
-
         static T _instance;
         public static T Instance
         {

@@ -91,6 +91,8 @@ namespace RTools
             }
 
             //Let's create a new Script named "SCENE_NAME.cs"
+            CreateFolderIfNotExists("Assets", "Scripts");
+            CreateFolderIfNotExists("Assets/Scripts", "Scene");
             using (StreamWriter sw = new StreamWriter(string.Format(Application.dataPath + "/Scripts/Scene/{0}.cs", sceneName)))
             {
                 sw.Write(contents);
@@ -106,13 +108,21 @@ namespace RTools
 #endif
         }
 
+#if UNITY_EDITOR
+        static void CreateFolderIfNotExists(string parentFolder, string subFolder)
+        {
+            if (!AssetDatabase.IsValidFolder(Path.Combine(parentFolder, subFolder)))
+            {
+                AssetDatabase.CreateFolder(parentFolder, subFolder);
+            }
+        }
+#endif
     }
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(SceneCreator))]
     public class SceneCreatorEditor : Editor
     {
-
         public override void OnInspectorGUI()
         {
             SceneCreator creator = (SceneCreator)target;

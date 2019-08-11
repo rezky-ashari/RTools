@@ -93,8 +93,10 @@ namespace RTools
                 PlayerSettings.bundleVersion = setup.appVersion;
                 PlayerSettings.Android.bundleVersionCode = setup.appVersionCode;
                 PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Unknown, new Texture2D[] { setup.icon });
+#if UNITY_ANDROID
                 SetIcons(UnityEditor.Android.AndroidPlatformIconKind.Adaptive, setup.adaptiveIconBackground, setup.adaptiveIconForeground);
                 SetIcons(UnityEditor.Android.AndroidPlatformIconKind.Round, setup.roundIcon);
+#endif
 
                 message = System.DateTime.Now + ". Your changes has been applied.";
             }
