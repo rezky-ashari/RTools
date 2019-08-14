@@ -24,6 +24,7 @@ public class RezTween {
         }
     }
     static RezTweenManager _manager;
+    static bool closingScene = false;
 
     /// <summary>
     /// Special properties used by RezTween.
@@ -465,6 +466,9 @@ public class RezTween {
     /// </summary>
     public void Destroy()
     {
+        if (TweenManager == null)
+            return;
+
         TweenManager.RemoveTween(this);
         if (tweenValues != null)
         {
@@ -1201,7 +1205,11 @@ public class RezTween {
             else if (checkAssociatedObject)
             {
                 if (associatedGameObject != null) ExecuteOnTick();
-                else ExecuteOnComplete();
+                else
+                {
+                    Stop(1);
+                    return;
+                }
             }
             else
             {
@@ -1214,20 +1222,18 @@ public class RezTween {
                     currentCount++;
                     ExecuteOnTick();
                 }
-                else ExecuteOnComplete();
+                else if (isRunning && delayedCall != null)
+                {
+                    Stop(2);
+                    return;
+                }
             }
             delayedCall = DelayedCall(interval, NextTick);
         }
 
         void ExecuteOnTick()
         {
-            if (onTick != null) onTick();
-        }
-
-        void ExecuteOnComplete()
-        {
-            isRunning = false;
-            if (onComplete != null) onComplete();
+            onTick?.Invoke();
         }
 
         public void Start()
@@ -1237,8 +1243,18 @@ public class RezTween {
 
         public void Stop(bool executeOnComplete = true)
         {
-            StopDelayedCall(ref delayedCall);
-            if (executeOnComplete) ExecuteOnComplete();
+            if (isRunning)
+            {
+                isRunning = false;
+                StopDelayedCall(ref delayedCall);
+                if (executeOnComplete) onComplete?.Invoke();
+            }            
+        }
+
+        public void Stop(int id)
+        {
+            Debug.Log("Stop from id " + id);
+            Stop();
         }
     }
 
@@ -1446,6 +1462,8 @@ public class RezTween {
         /// <returns></returns>
         internal static RezTweenManager Init()
         {
+            if (closingScene) return null;
+
             GameObject tweenManagerObject = new GameObject("TweenManager");
             DontDestroyOnLoad(tweenManagerObject);
             return tweenManagerObject.AddComponent<RezTweenManager>();            
@@ -1523,6 +1541,11 @@ public class RezTween {
                 InternalListener_NextFrame();
                 InternalListener_NextFrame = null;
             }
+        }
+
+        private void OnDestroy()
+        {
+            closingScene = true;
         }
     }
     #endregion

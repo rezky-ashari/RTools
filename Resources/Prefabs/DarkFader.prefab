@@ -163,7 +163,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1024349790718122}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf3b8dde33eef7f4cbebe37eb134255f, type: 3}
+  m_Script: {fileID: 11500000, guid: bdb561fdc0107e147826bee5545a19c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   baseText: Loading
@@ -181,7 +181,6 @@ GameObject:
   - component: {fileID: 114129379556282766}
   - component: {fileID: 114513062137114494}
   - component: {fileID: 225910822261591460}
-  - component: {fileID: 7997180307613003820}
   m_Layer: 5
   m_Name: DarkFader
   m_TagString: Untagged
@@ -279,22 +278,10 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1397400839772860}
   m_Enabled: 1
-  m_Alpha: 1
+  m_Alpha: 0
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!114 &7997180307613003820
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1397400839772860}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c9fb7e2e3686fe4990b59035e996e50, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1845427347804384
 GameObject:
   m_ObjectHideFlags: 0

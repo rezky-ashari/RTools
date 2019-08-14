@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5142153922037733384}
   - component: {fileID: 748205427302073112}
   - component: {fileID: 1904728993101762352}
-  - component: {fileID: 7496300239105933187}
+  - component: {fileID: 7355310215652598391}
   m_Layer: 0
   m_Name: DialogBox
   m_TagString: Untagged
@@ -77,9 +77,9 @@ MonoBehaviour:
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 720, y: 1024}
+  m_ReferenceResolution: {x: 1024, y: 720}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 1
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -110,10 +110,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 4733084523413716462}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c9fb7e2e3686fe4990b59035e996e50, type: 3}
+  m_Script: {fileID: 11500000, guid: 17da2e9490c5622419dde3ce65bee336, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &7496300239105933187
+  dialogPanel: {fileID: 8240009683779136117}
+  boxContainer: {fileID: 8240009682782923182}
+  dialogText: {fileID: 8240009682384949036}
+--- !u!114 &7355310215652598391
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -122,12 +125,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 4733084523413716462}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 706242fca9a012043afd3878cdea0e28, type: 3}
+  m_Script: {fileID: 11500000, guid: 4aee37a710ce6b047b64faf97a24b2ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dialogPanel: {fileID: 8240009683779136117}
-  boxContainer: {fileID: 8240009682782923182}
-  dialogText: {fileID: 8240009682384949036}
 --- !u!1 &8240009682384949038
 GameObject:
   m_ObjectHideFlags: 0
@@ -186,7 +186,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_Color: {r: 0.5137255, g: 0.5137255, b: 0.5137255, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -274,7 +274,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-  m_Sprite: {fileID: 21300000, guid: e7a08f4b10d62d044bd7ac07e99c1ade, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 68f9a9b8c1991fe48adfab127f6b8e37, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -350,8 +350,8 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-  m_Sprite: {fileID: 21300000, guid: 7e7d304c7cdd83a4091b23749c73ae30, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: ce2bc62524caa7f40808f601f241fdec, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -368,10 +368,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 8240009683305809693}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ffc1a9055fe498438bde591d3ffc00a, type: 3}
+  m_Script: {fileID: 11500000, guid: d7ecd2b9637cb0945a9b6a6c565f9c43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ID: 
+  ID: dialog-ok
   interactable: 1
   lockAlpha: 0
   ignoreTransparentArea: 0
@@ -382,7 +382,7 @@ MonoBehaviour:
   onClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 7496300239105933187}
+      - m_Target: {fileID: 1904728993101762352}
         m_MethodName: Hide
         m_Mode: 1
         m_Arguments:
@@ -504,7 +504,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 5.5}
+  m_AnchoredPosition: {x: 0, y: -1}
   m_SizeDelta: {x: 0, y: -11}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8240009684062855544
@@ -528,7 +528,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.5137255, g: 0.5137255, b: 0.5137255, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:

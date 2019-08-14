@@ -25,11 +25,13 @@ namespace RTools
 
         private static void EngageRenameMode()
         {
+#if UNITY_EDITOR
             if (EditorApplication.timeSinceStartup >= renameTime)
             {
                 EditorApplication.update -= EngageRenameMode;
                 EditorWindow.focusedWindow.SendEvent(new Event() { keyCode = KeyCode.F2, type = EventType.KeyDown });
             }
+#endif
         }
 
         /// <summary>
@@ -38,9 +40,11 @@ namespace RTools
         /// <param name="target">GameObject to rename.</param>
         private static void Rename(GameObject target)
         {
+#if UNITY_EDITOR
             Selection.activeGameObject = target;
             renameTime = EditorApplication.timeSinceStartup + 0.2d;
             EditorApplication.update += EngageRenameMode;
+#endif
         }
         #endregion
 
