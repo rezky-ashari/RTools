@@ -25,7 +25,7 @@ namespace RTools
 
         Vector2 scenesScrollPosition;
 
-        [MenuItem("RTools/Scene Switcher &x")]
+        [MenuItem("RTools/Scene Switcher &X")]
         public static void ShowWindow()
         {
             GetWindow<SceneSwitcherWindow>(true, "Scene Switcher");
